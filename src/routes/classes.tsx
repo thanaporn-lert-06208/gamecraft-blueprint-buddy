@@ -181,8 +181,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
           <div className="mt-2 flex flex-wrap gap-2">
             {inheritedFields.map((f) => (
               <span key={f.id} className="rounded-md border bg-background px-2 py-1 font-mono text-xs">
-                {f.name}: {f.type.kind === "primitive" ? f.type.type : classes.find((c) => c.id === f.type.classId)?.name}
-                {f.isList ? "[]" : ""}
+                {f.name}: {typeLabel(f, classes)}{f.isList ? "[]" : ""}
               </span>
             ))}
           </div>
