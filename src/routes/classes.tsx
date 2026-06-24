@@ -198,13 +198,13 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
 
       <div className="rounded-xl border bg-card p-5">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold">Fields</h3>
-          <Button size="sm" onClick={addField}><Plus className="h-4 w-4" /> Add field</Button>
+          <h3 className="font-semibold">{tr.fields}</h3>
+          <Button size="sm" onClick={addField}><Plus className="h-4 w-4" /> {tr.add_field}</Button>
         </div>
         <div className="mt-4 space-y-2">
           {cls.fields.length === 0 && (
             <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-              No fields. Add one to begin.
+              {tr.no_fields}
             </p>
           )}
           {cls.fields.map((f) => (
@@ -213,7 +213,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
                 className="col-span-4"
                 value={f.name}
                 onChange={(e) => updateField(f.id, { name: e.target.value })}
-                placeholder="field name"
+                placeholder={tr.field_name_placeholder}
               />
               <div className="col-span-4">
                 <Select value={fieldTypeValue(f.type)} onValueChange={(v) => setFieldType(f.id, v)}>
