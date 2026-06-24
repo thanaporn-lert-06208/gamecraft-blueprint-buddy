@@ -266,6 +266,7 @@ function FieldEditor({
   onChange: (v: unknown) => void;
 }) {
   const { classes } = useGameFlow();
+  const { t: tr } = useLang();
 
   if (field.isList) {
     const arr = Array.isArray(value) ? value : [];
