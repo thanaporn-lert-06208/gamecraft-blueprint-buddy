@@ -44,6 +44,7 @@ function download(name: string, content: string, mime: string) {
 
 function CardsPage() {
   const { classes, cards } = useGameFlow();
+  const { t: tr } = useLang();
   const [selectedId, setSelectedId] = useState<string | null>(cards[0]?.id ?? null);
   const [pendingClassId, setPendingClassId] = useState<string>(classes[0]?.id ?? "");
 
