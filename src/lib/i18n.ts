@@ -104,9 +104,9 @@ const dict = {
     class_missing: "ไม่พบคลาส",
     lang_label: "ภาษา",
   },
-} as const;
+} as const satisfies Record<Lang, unknown>;
 
-export type Dict = typeof dict.en;
+export type Dict = (typeof dict)["en"];
 
 export function useLang(): { lang: Lang; t: Dict; toggle: () => void } {
   const current = useSyncExternalStore(subscribe, getLang, getLang);
