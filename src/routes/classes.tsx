@@ -99,6 +99,8 @@ function ClassesPage() {
 
 function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void }) {
   const { classes } = useGameFlow();
+  const { t: tr } = useLang();
+
 
   const forbiddenParents = useMemo(() => {
     const d = getDescendantIds(classes, cls.id);
