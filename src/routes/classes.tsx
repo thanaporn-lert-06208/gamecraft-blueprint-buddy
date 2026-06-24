@@ -152,7 +152,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
     <div className="space-y-6">
       <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-card p-5">
         <div className="grow space-y-2">
-          <Label>Class name</Label>
+          <Label>{tr.class_name}</Label>
           <Input
             value={cls.name}
             onChange={(e) => actions.updateClass(cls.id, { name: e.target.value })}
@@ -160,14 +160,14 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
           />
         </div>
         <div className="w-64 space-y-2">
-          <Label>Inherits from</Label>
+          <Label>{tr.inherits_from}</Label>
           <Select
             value={cls.parentId ?? "__none"}
             onValueChange={(v) => actions.updateClass(cls.id, { parentId: v === "__none" ? null : v })}
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none">— None —</SelectItem>
+              <SelectItem value="__none">{tr.none}</SelectItem>
               {parentOptions.map((p) => (
                 <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
               ))}
@@ -175,7 +175,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
           </Select>
         </div>
         <Button variant="destructive" onClick={onDelete}>
-          <Trash2 className="h-4 w-4" /> Delete
+          <Trash2 className="h-4 w-4" /> {tr.delete}
         </Button>
       </div>
 
