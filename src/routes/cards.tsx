@@ -153,12 +153,13 @@ function CardsPage() {
 
 function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
   const { classes } = useGameFlow();
+  const { t: tr } = useLang();
   const cls = classes.find((c) => c.id === card.classId);
 
   const fields = useMemo(() => (cls ? getAllFields(classes, cls.id) : []), [classes, cls]);
 
   if (!cls) {
-    return <div className="rounded-xl border bg-card p-6">Class missing.</div>;
+    return <div className="rounded-xl border bg-card p-6">{tr.class_missing}</div>;
   }
 
   function setData(next: Record<string, unknown>) {
