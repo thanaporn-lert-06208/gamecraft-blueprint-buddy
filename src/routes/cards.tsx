@@ -142,7 +142,7 @@ function CardsPage() {
             />
           ) : (
             <div className="grid h-64 place-items-center rounded-xl border border-dashed text-muted-foreground">
-              Select or create a card to edit it.
+              {tr.select_or_create_card}
             </div>
           )}
         </section>
