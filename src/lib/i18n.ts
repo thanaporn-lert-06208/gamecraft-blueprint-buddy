@@ -104,7 +104,7 @@ const dict = {
     class_missing: "ไม่พบคลาส",
     lang_label: "ภาษา",
   },
-} as const satisfies Record<Lang, unknown>;
+};
 
 export type Dict = (typeof dict)["en"];
 
