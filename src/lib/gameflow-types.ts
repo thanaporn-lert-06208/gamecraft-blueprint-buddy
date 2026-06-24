@@ -92,11 +92,12 @@ export function classToCSharp(cls: ClassObject, classes: ClassObject[]): string 
   const parent = cls.parentId ? classes.find((c) => c.id === cls.parentId) : null;
   const parentStr = parent ? ` : ${parent.name}` : "";
   const fieldLines = cls.fields.map((f) => {
+    const ft = f.type;
     let baseType: string;
-    if (f.type.kind === "primitive") {
-      baseType = f.type.type;
+    if (ft.kind === "primitive") {
+      baseType = ft.type;
     } else {
-      baseType = classes.find((c) => c.id === f.type.classId)?.name ?? "object";
+      baseType = classes.find((c) => c.id === ft.classId)?.name ?? "object";
     }
     const t = f.isList ? `List<${baseType}>` : baseType;
     return `    public ${t} ${f.name};`;
