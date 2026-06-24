@@ -361,6 +361,7 @@ function FieldEditor({
 }
 
 function typeLabel(field: ClassField, classes: ClassObject[]): string {
-  if (field.type.kind === "primitive") return field.type.type;
-  return classes.find((c) => c.id === field.type.classId)?.name ?? "?";
+  const ft = field.type;
+  if (ft.kind === "primitive") return ft.type;
+  return classes.find((c) => c.id === ft.classId)?.name ?? "?";
 }
