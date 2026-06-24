@@ -309,7 +309,7 @@ function FieldEditor({
               </Button>
             </div>
           ))}
-          {arr.length === 0 && <p className="text-xs text-muted-foreground">Empty list</p>}
+          {arr.length === 0 && <p className="text-xs text-muted-foreground">{tr.empty_list}</p>}
         </div>
       </div>
     );
