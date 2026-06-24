@@ -224,7 +224,7 @@ function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
 
       <div className="rounded-xl border bg-card p-5">
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-muted-foreground">JSON preview</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground">{tr.json_preview}</h3>
           <Button size="sm" variant="ghost" onClick={exportJson}><Download className="h-4 w-4" /></Button>
         </div>
         <pre className="overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
