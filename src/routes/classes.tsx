@@ -181,7 +181,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
 
       {inheritedFields.length > 0 && (
         <div className="rounded-xl border bg-muted/30 p-5">
-          <h3 className="text-sm font-semibold text-muted-foreground">Inherited fields</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground">{tr.inherited_fields}</h3>
           <div className="mt-2 flex flex-wrap gap-2">
             {inheritedFields.map((f) => {
               const ft = f.type;
