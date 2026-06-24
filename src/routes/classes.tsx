@@ -179,11 +179,15 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
         <div className="rounded-xl border bg-muted/30 p-5">
           <h3 className="text-sm font-semibold text-muted-foreground">Inherited fields</h3>
           <div className="mt-2 flex flex-wrap gap-2">
-            {inheritedFields.map((f) => (
-              <span key={f.id} className="rounded-md border bg-background px-2 py-1 font-mono text-xs">
-                {f.name}: {typeLabel(f, classes)}{f.isList ? "[]" : ""}
-              </span>
-            ))}
+            {inheritedFields.map((f) => {
+              const ft = f.type;
+              const tn = ft.kind === "primitive" ? ft.type : (classes.find((c) => c.id === ft.classId)?.name ?? "?");
+              return (
+                <span key={f.id} className="rounded-md border bg-background px-2 py-1 font-mono text-xs">
+                  {f.name}: {tn}{f.isList ? "[]" : ""}
+                </span>
+              );
+            })}
           </div>
         </div>
       )}
