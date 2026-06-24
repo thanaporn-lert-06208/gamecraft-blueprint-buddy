@@ -1,7 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { Boxes, Layers } from "lucide-react";
+import { Boxes, Layers, Languages } from "lucide-react";
+import { useLang } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
 
 export function AppNav() {
+  const { t, lang, toggle } = useLang();
+  const linkBase =
+    "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition";
+  const inactive = `${linkBase} text-muted-foreground hover:bg-accent hover:text-foreground`;
+  const active = `${linkBase} bg-accent text-foreground font-medium`;
+
   return (
     <header className="border-b bg-card">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -9,23 +17,25 @@ export function AppNav() {
           <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
             GF
           </span>
-          <span>GameFlow Forge</span>
+          <span>{t.appName}</span>
         </Link>
         <nav className="flex items-center gap-1">
-          <Link
-            to="/classes"
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground"
-            activeProps={{ className: "flex items-center gap-2 rounded-md px-3 py-2 text-sm bg-accent text-foreground font-medium" }}
-          >
-            <Boxes className="h-4 w-4" /> Classes
+          <Link to="/classes" className={inactive} activeProps={{ className: active }}>
+            <Boxes className="h-4 w-4" /> {t.nav_classes}
           </Link>
-          <Link
-            to="/cards"
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground"
-            activeProps={{ className: "flex items-center gap-2 rounded-md px-3 py-2 text-sm bg-accent text-foreground font-medium" }}
-          >
-            <Layers className="h-4 w-4" /> Cards
+          <Link to="/cards" className={inactive} activeProps={{ className: active }}>
+            <Layers className="h-4 w-4" /> {t.nav_cards}
           </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggle}
+            className="ml-2"
+            aria-label={t.lang_label}
+          >
+            <Languages className="h-4 w-4" />
+            {lang === "en" ? "EN" : "ไทย"}
+          </Button>
         </nav>
       </div>
     </header>

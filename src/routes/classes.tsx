@@ -20,6 +20,7 @@ import {
   type PrimitiveType,
 } from "@/lib/gameflow-types";
 import { Plus, Trash2, Boxes } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/classes")({
   head: () => ({
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/classes")({
 
 function ClassesPage() {
   const { classes } = useGameFlow();
+  const { t: tr } = useLang();
   const [selectedId, setSelectedId] = useState<string | null>(classes[0]?.id ?? null);
 
   const selected = classes.find((c) => c.id === selectedId) ?? null;
@@ -54,13 +56,13 @@ function ClassesPage() {
       <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Classes</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.classes_header}</h2>
             <Button size="sm" onClick={createClass}><Plus className="h-4 w-4" /></Button>
           </div>
           <div className="space-y-1">
             {classes.length === 0 && (
               <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                No classes yet. Click + to create one.
+                {tr.classes_empty}
               </p>
             )}
             {classes.map((c) => (
@@ -86,7 +88,7 @@ function ClassesPage() {
             }} />
           ) : (
             <div className="grid h-64 place-items-center rounded-xl border border-dashed text-muted-foreground">
-              Select or create a class to edit it.
+              {tr.select_or_create_class}
             </div>
           )}
         </section>
@@ -97,6 +99,8 @@ function ClassesPage() {
 
 function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void }) {
   const { classes } = useGameFlow();
+  const { t: tr } = useLang();
+
 
   const forbiddenParents = useMemo(() => {
     const d = getDescendantIds(classes, cls.id);
@@ -148,7 +152,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
     <div className="space-y-6">
       <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-card p-5">
         <div className="grow space-y-2">
-          <Label>Class name</Label>
+          <Label>{tr.class_name}</Label>
           <Input
             value={cls.name}
             onChange={(e) => actions.updateClass(cls.id, { name: e.target.value })}
@@ -156,14 +160,14 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
           />
         </div>
         <div className="w-64 space-y-2">
-          <Label>Inherits from</Label>
+          <Label>{tr.inherits_from}</Label>
           <Select
             value={cls.parentId ?? "__none"}
             onValueChange={(v) => actions.updateClass(cls.id, { parentId: v === "__none" ? null : v })}
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none">— None —</SelectItem>
+              <SelectItem value="__none">{tr.none}</SelectItem>
               {parentOptions.map((p) => (
                 <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
               ))}
@@ -171,13 +175,13 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
           </Select>
         </div>
         <Button variant="destructive" onClick={onDelete}>
-          <Trash2 className="h-4 w-4" /> Delete
+          <Trash2 className="h-4 w-4" /> {tr.delete}
         </Button>
       </div>
 
       {inheritedFields.length > 0 && (
         <div className="rounded-xl border bg-muted/30 p-5">
-          <h3 className="text-sm font-semibold text-muted-foreground">Inherited fields</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground">{tr.inherited_fields}</h3>
           <div className="mt-2 flex flex-wrap gap-2">
             {inheritedFields.map((f) => {
               const ft = f.type;
@@ -194,13 +198,13 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
 
       <div className="rounded-xl border bg-card p-5">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold">Fields</h3>
-          <Button size="sm" onClick={addField}><Plus className="h-4 w-4" /> Add field</Button>
+          <h3 className="font-semibold">{tr.fields}</h3>
+          <Button size="sm" onClick={addField}><Plus className="h-4 w-4" /> {tr.add_field}</Button>
         </div>
         <div className="mt-4 space-y-2">
           {cls.fields.length === 0 && (
             <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-              No fields. Add one to begin.
+              {tr.no_fields}
             </p>
           )}
           {cls.fields.map((f) => (
@@ -209,7 +213,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
                 className="col-span-4"
                 value={f.name}
                 onChange={(e) => updateField(f.id, { name: e.target.value })}
-                placeholder="field name"
+                placeholder={tr.field_name_placeholder}
               />
               <div className="col-span-4">
                 <Select value={fieldTypeValue(f.type)} onValueChange={(v) => setFieldType(f.id, v)}>
@@ -226,7 +230,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
               </div>
               <label className="col-span-3 flex items-center gap-2 text-sm">
                 <Switch checked={f.isList} onCheckedChange={(v) => updateField(f.id, { isList: v })} />
-                List
+                {tr.list}
               </label>
               <Button
                 variant="ghost"
@@ -242,7 +246,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
       </div>
 
       <div className="rounded-xl border bg-card p-5">
-        <h3 className="text-sm font-semibold text-muted-foreground">C# preview</h3>
+        <h3 className="text-sm font-semibold text-muted-foreground">{tr.csharp_preview}</h3>
         <pre className="mt-2 overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">{csharp}</pre>
       </div>
     </div>

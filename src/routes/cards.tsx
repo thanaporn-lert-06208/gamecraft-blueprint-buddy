@@ -20,6 +20,7 @@ import {
   type ClassObject,
 } from "@/lib/gameflow-types";
 import { Plus, Trash2, Download, FileJson, FileText, Package, Layers } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cards")({
   head: () => ({
@@ -43,6 +44,7 @@ function download(name: string, content: string, mime: string) {
 
 function CardsPage() {
   const { classes, cards } = useGameFlow();
+  const { t: tr } = useLang();
   const [selectedId, setSelectedId] = useState<string | null>(cards[0]?.id ?? null);
   const [pendingClassId, setPendingClassId] = useState<string>(classes[0]?.id ?? "");
 
@@ -85,9 +87,9 @@ function CardsPage() {
       <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[300px_1fr]">
         <aside className="space-y-4">
           <div className="space-y-2 rounded-xl border bg-card p-4">
-            <Label className="text-xs uppercase text-muted-foreground">New card from class</Label>
+            <Label className="text-xs uppercase text-muted-foreground">{tr.new_card_from_class}</Label>
             <Select value={pendingClassId} onValueChange={setPendingClassId}>
-              <SelectTrigger><SelectValue placeholder="Pick a class" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={tr.pick_a_class} /></SelectTrigger>
               <SelectContent>
                 {classes.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
@@ -95,22 +97,22 @@ function CardsPage() {
               </SelectContent>
             </Select>
             <Button onClick={createCard} disabled={!pendingClassId} className="w-full">
-              <Plus className="h-4 w-4" /> Create card
+              <Plus className="h-4 w-4" /> {tr.create_card}
             </Button>
             {classes.length === 0 && (
-              <p className="text-xs text-muted-foreground">Define a class first on the Classes page.</p>
+              <p className="text-xs text-muted-foreground">{tr.define_class_first}</p>
             )}
           </div>
 
           <div className="space-y-1">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Cards</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.cards_header}</h2>
               <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
                 <Package className="h-4 w-4" /> ZIP
               </Button>
             </div>
             {cards.length === 0 && (
-              <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">No cards yet.</p>
+              <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">{tr.no_cards}</p>
             )}
             {cards.map((card) => {
               const cls = classes.find((c) => c.id === card.classId);
@@ -140,7 +142,7 @@ function CardsPage() {
             />
           ) : (
             <div className="grid h-64 place-items-center rounded-xl border border-dashed text-muted-foreground">
-              Select or create a card to edit it.
+              {tr.select_or_create_card}
             </div>
           )}
         </section>
@@ -151,12 +153,13 @@ function CardsPage() {
 
 function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
   const { classes } = useGameFlow();
+  const { t: tr } = useLang();
   const cls = classes.find((c) => c.id === card.classId);
 
   const fields = useMemo(() => (cls ? getAllFields(classes, cls.id) : []), [classes, cls]);
 
   if (!cls) {
-    return <div className="rounded-xl border bg-card p-6">Class missing.</div>;
+    return <div className="rounded-xl border bg-card p-6">{tr.class_missing}</div>;
   }
 
   function setData(next: Record<string, unknown>) {
@@ -200,11 +203,11 @@ function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-card p-5">
         <div className="grow space-y-2">
-          <Label>Card name</Label>
+          <Label>{tr.card_name}</Label>
           <Input value={card.name} onChange={(e) => actions.updateCard(card.id, { name: e.target.value })} />
         </div>
         <div className="text-sm text-muted-foreground">
-          Class: <span className="font-mono text-foreground">{cls.name}</span>
+          {tr.class_label} <span className="font-mono text-foreground">{cls.name}</span>
         </div>
         <Button variant="outline" onClick={exportTxt}><FileText className="h-4 w-4" /> .txt</Button>
         <Button variant="outline" onClick={exportJson}><FileJson className="h-4 w-4" /> .json</Button>
@@ -221,7 +224,7 @@ function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
 
       <div className="rounded-xl border bg-card p-5">
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-muted-foreground">JSON preview</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground">{tr.json_preview}</h3>
           <Button size="sm" variant="ghost" onClick={exportJson}><Download className="h-4 w-4" /></Button>
         </div>
         <pre className="overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
@@ -239,6 +242,7 @@ function ObjectEditor({
   value: Record<string, unknown>;
   onChange: (v: Record<string, unknown>) => void;
 }) {
+  const { t: tr } = useLang();
   return (
     <div className="space-y-4">
       {fields.map((f) => (
@@ -249,7 +253,7 @@ function ObjectEditor({
           onChange={(v) => onChange({ ...value, [f.name]: v })}
         />
       ))}
-      {fields.length === 0 && <p className="text-sm text-muted-foreground">No fields on this class.</p>}
+      {fields.length === 0 && <p className="text-sm text-muted-foreground">{tr.no_fields_class}</p>}
     </div>
   );
 }
@@ -262,6 +266,7 @@ function FieldEditor({
   onChange: (v: unknown) => void;
 }) {
   const { classes } = useGameFlow();
+  const { t: tr } = useLang();
 
   if (field.isList) {
     const arr = Array.isArray(value) ? value : [];
@@ -277,7 +282,7 @@ function FieldEditor({
             variant="outline"
             onClick={() => onChange([...arr, defaultValueFor(itemField, classes)])}
           >
-            <Plus className="h-4 w-4" /> Add
+            <Plus className="h-4 w-4" /> {tr.add}
           </Button>
         </div>
         <div className="mt-3 space-y-2">
@@ -304,7 +309,7 @@ function FieldEditor({
               </Button>
             </div>
           ))}
-          {arr.length === 0 && <p className="text-xs text-muted-foreground">Empty list</p>}
+          {arr.length === 0 && <p className="text-xs text-muted-foreground">{tr.empty_list}</p>}
         </div>
       </div>
     );
