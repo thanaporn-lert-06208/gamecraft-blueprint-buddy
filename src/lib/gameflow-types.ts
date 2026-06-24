@@ -69,15 +69,19 @@ export function getDescendantIds(classes: ClassObject[], classId: string): Set<s
 
 export function defaultValueFor(field: ClassField, classes: ClassObject[]): unknown {
   if (field.isList) return [];
-  if (field.type.kind === "primitive") {
-    switch (field.type.type) {
+  const ft = field.type;
+  if (ft.kind === "primitive") {
+    switch (ft.type) {
       case "string": return "";
       case "int":
       case "float": return 0;
       case "bool": return false;
     }
   }
-  return makeEmptyObject(classes, field.type.classId);
+  if (ft.kind === "class") {
+    return makeEmptyObject(classes, ft.classId);
+  }
+  return null;
 }
 
 export function makeEmptyObject(classes: ClassObject[], classId: string): Record<string, unknown> {
