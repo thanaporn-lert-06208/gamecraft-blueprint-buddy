@@ -88,7 +88,7 @@ function ClassesPage() {
             }} />
           ) : (
             <div className="grid h-64 place-items-center rounded-xl border border-dashed text-muted-foreground">
-              Select or create a class to edit it.
+              {t.select_or_create_class}
             </div>
           )}
         </section>
