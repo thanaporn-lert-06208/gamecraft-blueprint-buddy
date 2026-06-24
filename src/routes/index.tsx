@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppNav } from "@/components/AppNav";
 import { useGameFlow } from "@/lib/gameflow-store";
+import { useLang } from "@/lib/i18n";
 import { Boxes, Layers, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { classes, cards } = useGameFlow();
+  const { t } = useLang();
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
