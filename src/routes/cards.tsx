@@ -282,7 +282,7 @@ function FieldEditor({
             variant="outline"
             onClick={() => onChange([...arr, defaultValueFor(itemField, classes)])}
           >
-            <Plus className="h-4 w-4" /> Add
+            <Plus className="h-4 w-4" /> {tr.add}
           </Button>
         </div>
         <div className="mt-3 space-y-2">
