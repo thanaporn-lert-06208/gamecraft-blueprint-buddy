@@ -20,6 +20,7 @@ import {
   type ClassObject,
 } from "@/lib/gameflow-types";
 import { Plus, Trash2, Download, FileJson, FileText, Package, Layers } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cards")({
   head: () => ({
