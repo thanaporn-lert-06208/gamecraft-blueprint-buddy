@@ -56,13 +56,13 @@ function ClassesPage() {
       <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{t.classes_header}</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.classes_header}</h2>
             <Button size="sm" onClick={createClass}><Plus className="h-4 w-4" /></Button>
           </div>
           <div className="space-y-1">
             {classes.length === 0 && (
               <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                {t.classes_empty}
+                {tr.classes_empty}
               </p>
             )}
             {classes.map((c) => (
@@ -88,7 +88,7 @@ function ClassesPage() {
             }} />
           ) : (
             <div className="grid h-64 place-items-center rounded-xl border border-dashed text-muted-foreground">
-              {t.select_or_create_class}
+              {tr.select_or_create_class}
             </div>
           )}
         </section>
