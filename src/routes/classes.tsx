@@ -34,7 +34,7 @@ export const Route = createFileRoute("/classes")({
 
 function ClassesPage() {
   const { classes } = useGameFlow();
-  const { t } = useLang();
+  const { t: tr } = useLang();
   const [selectedId, setSelectedId] = useState<string | null>(classes[0]?.id ?? null);
 
   const selected = classes.find((c) => c.id === selectedId) ?? null;
