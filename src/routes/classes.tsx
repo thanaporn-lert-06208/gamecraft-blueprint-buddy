@@ -230,7 +230,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
               </div>
               <label className="col-span-3 flex items-center gap-2 text-sm">
                 <Switch checked={f.isList} onCheckedChange={(v) => updateField(f.id, { isList: v })} />
-                List
+                {tr.list}
               </label>
               <Button
                 variant="ghost"
