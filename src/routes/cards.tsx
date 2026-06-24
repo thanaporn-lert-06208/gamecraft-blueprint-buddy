@@ -87,9 +87,9 @@ function CardsPage() {
       <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[300px_1fr]">
         <aside className="space-y-4">
           <div className="space-y-2 rounded-xl border bg-card p-4">
-            <Label className="text-xs uppercase text-muted-foreground">New card from class</Label>
+            <Label className="text-xs uppercase text-muted-foreground">{tr.new_card_from_class}</Label>
             <Select value={pendingClassId} onValueChange={setPendingClassId}>
-              <SelectTrigger><SelectValue placeholder="Pick a class" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={tr.pick_a_class} /></SelectTrigger>
               <SelectContent>
                 {classes.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
@@ -97,22 +97,22 @@ function CardsPage() {
               </SelectContent>
             </Select>
             <Button onClick={createCard} disabled={!pendingClassId} className="w-full">
-              <Plus className="h-4 w-4" /> Create card
+              <Plus className="h-4 w-4" /> {tr.create_card}
             </Button>
             {classes.length === 0 && (
-              <p className="text-xs text-muted-foreground">Define a class first on the Classes page.</p>
+              <p className="text-xs text-muted-foreground">{tr.define_class_first}</p>
             )}
           </div>
 
           <div className="space-y-1">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Cards</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.cards_header}</h2>
               <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
                 <Package className="h-4 w-4" /> ZIP
               </Button>
             </div>
             {cards.length === 0 && (
-              <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">No cards yet.</p>
+              <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">{tr.no_cards}</p>
             )}
             {cards.map((card) => {
               const cls = classes.find((c) => c.id === card.classId);
