@@ -203,11 +203,11 @@ function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-card p-5">
         <div className="grow space-y-2">
-          <Label>Card name</Label>
+          <Label>{tr.card_name}</Label>
           <Input value={card.name} onChange={(e) => actions.updateCard(card.id, { name: e.target.value })} />
         </div>
         <div className="text-sm text-muted-foreground">
-          Class: <span className="font-mono text-foreground">{cls.name}</span>
+          {tr.class_label} <span className="font-mono text-foreground">{cls.name}</span>
         </div>
         <Button variant="outline" onClick={exportTxt}><FileText className="h-4 w-4" /> .txt</Button>
         <Button variant="outline" onClick={exportJson}><FileJson className="h-4 w-4" /> .json</Button>
