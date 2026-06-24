@@ -20,6 +20,7 @@ import {
   type PrimitiveType,
 } from "@/lib/gameflow-types";
 import { Plus, Trash2, Boxes } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/classes")({
   head: () => ({
