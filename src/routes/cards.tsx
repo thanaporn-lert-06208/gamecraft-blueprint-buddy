@@ -242,6 +242,7 @@ function ObjectEditor({
   value: Record<string, unknown>;
   onChange: (v: Record<string, unknown>) => void;
 }) {
+  const { t: tr } = useLang();
   return (
     <div className="space-y-4">
       {fields.map((f) => (
@@ -252,7 +253,7 @@ function ObjectEditor({
           onChange={(v) => onChange({ ...value, [f.name]: v })}
         />
       ))}
-      {fields.length === 0 && <p className="text-sm text-muted-foreground">No fields on this class.</p>}
+      {fields.length === 0 && <p className="text-sm text-muted-foreground">{tr.no_fields_class}</p>}
     </div>
   );
 }
