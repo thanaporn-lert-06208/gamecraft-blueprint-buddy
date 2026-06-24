@@ -246,7 +246,7 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
       </div>
 
       <div className="rounded-xl border bg-card p-5">
-        <h3 className="text-sm font-semibold text-muted-foreground">C# preview</h3>
+        <h3 className="text-sm font-semibold text-muted-foreground">{tr.csharp_preview}</h3>
         <pre className="mt-2 overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">{csharp}</pre>
       </div>
     </div>
