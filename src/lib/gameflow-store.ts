@@ -1,16 +1,23 @@
 import { useSyncExternalStore } from "react";
-import type { Card, ClassObject, GameFlowState } from "./gameflow-types";
+import type { Card, ClassObject, EnumObject, GameFlowState } from "./gameflow-types";
 
 const STORAGE_KEY = "gameflow_state_v1";
 
-let state: GameFlowState = { classes: [], cards: [] };
+let state: GameFlowState = { classes: [], enums: [], cards: [] };
 const listeners = new Set<() => void>();
 
 function load() {
   if (typeof window === "undefined") return;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state = JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<GameFlowState>;
+      state = {
+        classes: parsed.classes ?? [],
+        enums: parsed.enums ?? [],
+        cards: parsed.cards ?? [],
+      };
+    }
   } catch {}
 }
 load();
@@ -50,10 +57,29 @@ export const actions = {
   },
   deleteClass(id: string) {
     setState((s) => ({
-      classes: s.classes.filter((c) => c.id !== id).map((c) =>
-        c.parentId === id ? { ...c, parentId: null } : c
-      ),
+      ...s,
+      classes: s.classes.filter((c) => c.id !== id).map((c) => ({
+        ...c,
+        parentId: c.parentId === id ? null : c.parentId,
+        fields: c.fields.filter((f) => !(f.type.kind === "class" && f.type.classId === id)),
+      })),
       cards: s.cards.filter((card) => card.classId !== id),
+    }));
+  },
+  addEnum(en: EnumObject) {
+    setState((s) => ({ ...s, enums: [...s.enums, en] }));
+  },
+  updateEnum(id: string, patch: Partial<EnumObject>) {
+    setState((s) => ({ ...s, enums: s.enums.map((e) => e.id === id ? { ...e, ...patch } : e) }));
+  },
+  deleteEnum(id: string) {
+    setState((s) => ({
+      ...s,
+      enums: s.enums.filter((e) => e.id !== id),
+      classes: s.classes.map((c) => ({
+        ...c,
+        fields: c.fields.filter((f) => !(f.type.kind === "enum" && f.type.enumId === id)),
+      })),
     }));
   },
   addCard(card: Card) {

@@ -3,7 +3,8 @@ export const PRIMITIVE_TYPES: PrimitiveType[] = ["string", "int", "float", "bool
 
 export type FieldType =
   | { kind: "primitive"; type: PrimitiveType }
-  | { kind: "class"; classId: string };
+  | { kind: "class"; classId: string }
+  | { kind: "enum"; enumId: string };
 
 export interface ClassField {
   id: string;
@@ -19,6 +20,12 @@ export interface ClassObject {
   fields: ClassField[];
 }
 
+export interface EnumObject {
+  id: string;
+  name: string;
+  values: string[];
+}
+
 export interface Card {
   id: string;
   name: string;
@@ -28,6 +35,7 @@ export interface Card {
 
 export interface GameFlowState {
   classes: ClassObject[];
+  enums: EnumObject[];
   cards: Card[];
 }
 
@@ -67,7 +75,11 @@ export function getDescendantIds(classes: ClassObject[], classId: string): Set<s
   return set;
 }
 
-export function defaultValueFor(field: ClassField, classes: ClassObject[]): unknown {
+export function defaultValueFor(
+  field: ClassField,
+  classes: ClassObject[],
+  enums: EnumObject[] = [],
+): unknown {
   if (field.isList) return [];
   const ft = field.type;
   if (ft.kind === "primitive") {
@@ -78,21 +90,31 @@ export function defaultValueFor(field: ClassField, classes: ClassObject[]): unkn
       case "bool": return false;
     }
   }
-  if (ft.kind === "class") {
-    return makeEmptyObject(classes, ft.classId);
+  if (ft.kind === "enum") {
+    const en = enums.find((e) => e.id === ft.enumId);
+    return en?.values[0] ?? "";
   }
+  // class: default null to safely support self/recursive references
   return null;
 }
 
-export function makeEmptyObject(classes: ClassObject[], classId: string): Record<string, unknown> {
+export function makeEmptyObject(
+  classes: ClassObject[],
+  classId: string,
+  enums: EnumObject[] = [],
+): Record<string, unknown> {
   const obj: Record<string, unknown> = {};
   for (const f of getAllFields(classes, classId)) {
-    obj[f.name] = defaultValueFor(f, classes);
+    obj[f.name] = defaultValueFor(f, classes, enums);
   }
   return obj;
 }
 
-export function classToCSharp(cls: ClassObject, classes: ClassObject[]): string {
+export function classToCSharp(
+  cls: ClassObject,
+  classes: ClassObject[],
+  enums: EnumObject[] = [],
+): string {
   const parent = cls.parentId ? classes.find((c) => c.id === cls.parentId) : null;
   const parentStr = parent ? ` : ${parent.name}` : "";
   const fieldLines = cls.fields.map((f) => {
@@ -100,6 +122,8 @@ export function classToCSharp(cls: ClassObject, classes: ClassObject[]): string 
     let baseType: string;
     if (ft.kind === "primitive") {
       baseType = ft.type;
+    } else if (ft.kind === "enum") {
+      baseType = enums.find((e) => e.id === ft.enumId)?.name ?? "object";
     } else {
       baseType = classes.find((c) => c.id === ft.classId)?.name ?? "object";
     }
@@ -107,4 +131,8 @@ export function classToCSharp(cls: ClassObject, classes: ClassObject[]): string 
     return `    public ${t} ${f.name};`;
   });
   return `public class ${cls.name}${parentStr}\n{\n${fieldLines.join("\n")}\n}`;
+}
+
+export function enumToCSharp(en: EnumObject): string {
+  return `public enum ${en.name}\n{\n${en.values.map((v) => `    ${v},`).join("\n")}\n}`;
 }
