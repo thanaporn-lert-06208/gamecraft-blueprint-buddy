@@ -16,6 +16,7 @@ import {
   PRIMITIVE_TYPES,
   uid,
   type ClassObject,
+  type EnumObject,
   type FieldType,
   type PrimitiveType,
 } from "@/lib/gameflow-types";
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/classes")({
   head: () => ({
     meta: [
       { title: "Class Builder — GameFlow Forge" },
-      { name: "description", content: "Create C#-style class objects with fields, inheritance, and nested class references." },
+      { name: "description", content: "Create C#-style class objects with fields, inheritance, nested and self references." },
     ],
   }),
   component: ClassesPage,
@@ -97,10 +98,15 @@ function ClassesPage() {
   );
 }
 
-function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void }) {
-  const { classes } = useGameFlow();
-  const { t: tr } = useLang();
+function typeName(t: FieldType, classes: ClassObject[], enums: EnumObject[]): string {
+  if (t.kind === "primitive") return t.type;
+  if (t.kind === "enum") return enums.find((e) => e.id === t.enumId)?.name ?? "?";
+  return classes.find((c) => c.id === t.classId)?.name ?? "?";
+}
 
+function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void }) {
+  const { classes, enums } = useGameFlow();
+  const { t: tr } = useLang();
 
   const forbiddenParents = useMemo(() => {
     const d = getDescendantIds(classes, cls.id);
@@ -136,17 +142,21 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
     let next: FieldType;
     if (PRIMITIVE_TYPES.includes(value as PrimitiveType)) {
       next = { kind: "primitive", type: value as PrimitiveType };
+    } else if (value.startsWith("class:")) {
+      next = { kind: "class", classId: value.slice("class:".length) };
     } else {
-      next = { kind: "class", classId: value.replace(/^class:/, "") };
+      next = { kind: "enum", enumId: value.slice("enum:".length) };
     }
     updateField(fid, { type: next });
   }
 
   function fieldTypeValue(t: FieldType): string {
-    return t.kind === "primitive" ? t.type : `class:${t.classId}`;
+    if (t.kind === "primitive") return t.type;
+    if (t.kind === "enum") return `enum:${t.enumId}`;
+    return `class:${t.classId}`;
   }
 
-  const csharp = classToCSharp(cls, classes);
+  const csharp = classToCSharp(cls, classes, enums);
 
   return (
     <div className="space-y-6">
@@ -183,15 +193,11 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
         <div className="rounded-xl border bg-muted/30 p-5">
           <h3 className="text-sm font-semibold text-muted-foreground">{tr.inherited_fields}</h3>
           <div className="mt-2 flex flex-wrap gap-2">
-            {inheritedFields.map((f) => {
-              const ft = f.type;
-              const tn = ft.kind === "primitive" ? ft.type : (classes.find((c) => c.id === ft.classId)?.name ?? "?");
-              return (
-                <span key={f.id} className="rounded-md border bg-background px-2 py-1 font-mono text-xs">
-                  {f.name}: {tn}{f.isList ? "[]" : ""}
-                </span>
-              );
-            })}
+            {inheritedFields.map((f) => (
+              <span key={f.id} className="rounded-md border bg-background px-2 py-1 font-mono text-xs">
+                {f.name}: {typeName(f.type, classes, enums)}{f.isList ? "[]" : ""}
+              </span>
+            ))}
           </div>
         </div>
       )}
@@ -222,8 +228,13 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
                     {PRIMITIVE_TYPES.map((p) => (
                       <SelectItem key={p} value={p}>{p}</SelectItem>
                     ))}
-                    {classes.filter((c) => c.id !== cls.id).map((c) => (
-                      <SelectItem key={c.id} value={`class:${c.id}`}>{c.name} (class)</SelectItem>
+                    {classes.map((c) => (
+                      <SelectItem key={c.id} value={`class:${c.id}`}>
+                        {c.name} (class){c.id === cls.id ? ` ${tr.self_ref_suffix}` : ""}
+                      </SelectItem>
+                    ))}
+                    {enums.map((e) => (
+                      <SelectItem key={e.id} value={`enum:${e.id}`}>{e.name} (enum)</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

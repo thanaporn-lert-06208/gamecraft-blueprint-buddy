@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Boxes, Layers, Languages } from "lucide-react";
+import { Boxes, Layers, Languages, ListTree } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +22,9 @@ export function AppNav() {
         <nav className="flex items-center gap-1">
           <Link to="/classes" className={inactive} activeProps={{ className: active }}>
             <Boxes className="h-4 w-4" /> {t.nav_classes}
+          </Link>
+          <Link to="/enums" className={inactive} activeProps={{ className: active }}>
+            <ListTree className="h-4 w-4" /> {t.nav_enums}
           </Link>
           <Link to="/cards" className={inactive} activeProps={{ className: active }}>
             <Layers className="h-4 w-4" /> {t.nav_cards}

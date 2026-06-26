@@ -18,6 +18,8 @@ import {
   type Card,
   type ClassField,
   type ClassObject,
+  type EnumObject,
+  type FieldType,
 } from "@/lib/gameflow-types";
 import { Plus, Trash2, Download, FileJson, FileText, Package, Layers } from "lucide-react";
 import { useLang } from "@/lib/i18n";
@@ -43,7 +45,7 @@ function download(name: string, content: string, mime: string) {
 }
 
 function CardsPage() {
-  const { classes, cards } = useGameFlow();
+  const { classes, enums, cards } = useGameFlow();
   const { t: tr } = useLang();
   const [selectedId, setSelectedId] = useState<string | null>(cards[0]?.id ?? null);
   const [pendingClassId, setPendingClassId] = useState<string>(classes[0]?.id ?? "");
@@ -58,7 +60,7 @@ function CardsPage() {
       id: uid(),
       name: `${cls.name}_${cards.length + 1}`,
       classId: cls.id,
-      data: makeEmptyObject(classes, cls.id),
+      data: makeEmptyObject(classes, cls.id, enums),
     };
     actions.addCard(card);
     setSelectedId(card.id);
@@ -152,7 +154,7 @@ function CardsPage() {
 }
 
 function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
-  const { classes } = useGameFlow();
+  const { classes, enums } = useGameFlow();
   const { t: tr } = useLang();
   const cls = classes.find((c) => c.id === card.classId);
 
@@ -258,6 +260,12 @@ function ObjectEditor({
   );
 }
 
+function typeLabel(t: FieldType, classes: ClassObject[], enums: EnumObject[]): string {
+  if (t.kind === "primitive") return t.type;
+  if (t.kind === "enum") return enums.find((e) => e.id === t.enumId)?.name ?? "?";
+  return classes.find((c) => c.id === t.classId)?.name ?? "?";
+}
+
 function FieldEditor({
   field, value, onChange,
 }: {
@@ -265,7 +273,7 @@ function FieldEditor({
   value: unknown;
   onChange: (v: unknown) => void;
 }) {
-  const { classes } = useGameFlow();
+  const { classes, enums } = useGameFlow();
   const { t: tr } = useLang();
 
   if (field.isList) {
@@ -275,12 +283,12 @@ function FieldEditor({
       <div className="rounded-md border bg-muted/30 p-3">
         <div className="flex items-center justify-between">
           <div className="text-sm font-medium">
-            {field.name} <span className="font-mono text-xs text-muted-foreground">[{typeLabel(field, classes)}]</span>
+            {field.name} <span className="font-mono text-xs text-muted-foreground">[{typeLabel(field.type, classes, enums)}]</span>
           </div>
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onChange([...arr, defaultValueFor(itemField, classes)])}
+            onClick={() => onChange([...arr, defaultValueFor(itemField, classes, enums)])}
           >
             <Plus className="h-4 w-4" /> {tr.add}
           </Button>
@@ -344,29 +352,67 @@ function FieldEditor({
     );
   }
 
-  // class reference
+  if (field.type.kind === "enum") {
+    const en = enums.find((e) => e.id === (field.type as { enumId: string }).enumId);
+    const current = typeof value === "string" ? value : "";
+    return (
+      <div className="grid grid-cols-12 items-center gap-3">
+        <Label className="col-span-3 truncate text-sm">
+          {field.name}
+          <span className="ml-1 font-mono text-xs text-muted-foreground">{en?.name ?? "?"}</span>
+        </Label>
+        <div className="col-span-9">
+          <Select value={current || undefined} onValueChange={(v) => onChange(v)}>
+            <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+            <SelectContent>
+              {(en?.values ?? []).map((v) => (
+                <SelectItem key={v} value={v}>{v}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    );
+  }
+
+  // class reference (possibly self/recursive). value can be null until user creates it.
   const classId = field.type.classId;
   const refCls = classes.find((c) => c.id === classId);
-  const subFields = refCls ? getAllFields(classes, refCls.id) : [];
-  const obj = (value && typeof value === "object" && !Array.isArray(value))
-    ? (value as Record<string, unknown>)
-    : {};
+  const isObj = value !== null && typeof value === "object" && !Array.isArray(value);
 
   return (
     <div className="rounded-md border bg-muted/30 p-3">
-      <div className="text-sm font-medium">
-        {field.name}
-        <span className="ml-1 font-mono text-xs text-muted-foreground">{refCls?.name ?? "?"}</span>
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium">
+          {field.name}
+          <span className="ml-1 font-mono text-xs text-muted-foreground">{refCls?.name ?? "?"}</span>
+        </div>
+        {isObj ? (
+          <Button size="sm" variant="ghost" onClick={() => onChange(null)}>
+            <Trash2 className="h-4 w-4" /> {tr.clear_nested}
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!refCls}
+            onClick={() => refCls && onChange(makeEmptyObject(classes, refCls.id, enums))}
+          >
+            <Plus className="h-4 w-4" /> {tr.create_nested}
+          </Button>
+        )}
       </div>
-      <div className="mt-3 space-y-3 border-l-2 border-border pl-4">
-        <ObjectEditor fields={subFields} value={obj} onChange={onChange as (v: Record<string, unknown>) => void} />
-      </div>
+      {isObj && refCls ? (
+        <div className="mt-3 space-y-3 border-l-2 border-border pl-4">
+          <ObjectEditor
+            fields={getAllFields(classes, refCls.id)}
+            value={value as Record<string, unknown>}
+            onChange={onChange as (v: Record<string, unknown>) => void}
+          />
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-muted-foreground">{tr.null_value}</p>
+      )}
     </div>
   );
-}
-
-function typeLabel(field: ClassField, classes: ClassObject[]): string {
-  const ft = field.type;
-  if (ft.kind === "primitive") return ft.type;
-  return classes.find((c) => c.id === ft.classId)?.name ?? "?";
 }
