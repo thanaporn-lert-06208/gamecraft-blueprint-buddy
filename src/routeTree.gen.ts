@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EnumsRouteImport } from './routes/enums'
 import { Route as ClassesRouteImport } from './routes/classes'
 import { Route as CardsRouteImport } from './routes/cards'
 import { Route as IndexRouteImport } from './routes/index'
 
+const EnumsRoute = EnumsRouteImport.update({
+  id: '/enums',
+  path: '/enums',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClassesRoute = ClassesRouteImport.update({
   id: '/classes',
   path: '/classes',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cards': typeof CardsRoute
   '/classes': typeof ClassesRoute
+  '/enums': typeof EnumsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cards': typeof CardsRoute
   '/classes': typeof ClassesRoute
+  '/enums': typeof EnumsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cards': typeof CardsRoute
   '/classes': typeof ClassesRoute
+  '/enums': typeof EnumsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cards' | '/classes'
+  fullPaths: '/' | '/cards' | '/classes' | '/enums'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cards' | '/classes'
-  id: '__root__' | '/' | '/cards' | '/classes'
+  to: '/' | '/cards' | '/classes' | '/enums'
+  id: '__root__' | '/' | '/cards' | '/classes' | '/enums'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CardsRoute: typeof CardsRoute
   ClassesRoute: typeof ClassesRoute
+  EnumsRoute: typeof EnumsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/enums': {
+      id: '/enums'
+      path: '/enums'
+      fullPath: '/enums'
+      preLoaderRoute: typeof EnumsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/classes': {
       id: '/classes'
       path: '/classes'
@@ -89,17 +106,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CardsRoute: CardsRoute,
   ClassesRoute: ClassesRoute,
+  EnumsRoute: EnumsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
