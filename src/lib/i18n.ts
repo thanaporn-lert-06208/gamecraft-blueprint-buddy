@@ -77,6 +77,11 @@ const dict = {
     clear_nested: "Clear",
     null_value: "null",
     self_ref_suffix: "(self)",
+    search_placeholder: "Search...",
+    no_results: "No results.",
+    group_primitive: "Primitives",
+    group_class: "Classes",
+    group_enum: "Enums",
   },
   th: {
     appName: "GameFlow Forge",
