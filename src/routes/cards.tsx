@@ -366,7 +366,7 @@ function FieldEditor({
             <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               {(en?.values ?? []).map((v) => (
-                <SelectItem key={v} value={v}>{v}</SelectItem>
+                <SelectItem key={v.name} value={v.name}>{v.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>

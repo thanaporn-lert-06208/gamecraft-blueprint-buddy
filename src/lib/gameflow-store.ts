@@ -12,9 +12,15 @@ function load() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<GameFlowState>;
+      const enums = (parsed.enums ?? []).map((e) => ({
+        ...e,
+        values: (e.values as unknown as Array<string | { name: string; value?: number | null }>).map((v) =>
+          typeof v === "string" ? { name: v } : { name: v.name, value: v.value ?? null },
+        ),
+      }));
       state = {
         classes: parsed.classes ?? [],
-        enums: parsed.enums ?? [],
+        enums,
         cards: parsed.cards ?? [],
       };
     }
