@@ -21,6 +21,7 @@ export interface ClassObject {
 }
 
 export interface EnumValue {
+  id: string;
   name: string;
   /** When set, locks the numeric value (C# `Name = value`). When null/undefined, value auto-increments. */
   value?: number | null;

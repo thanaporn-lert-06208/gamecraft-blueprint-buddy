@@ -6,8 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { actions, useGameFlow } from "@/lib/gameflow-store";
 import { computeEnumNumbers, enumToCSharp, uid, type EnumObject, type EnumValue } from "@/lib/gameflow-types";
-import { Plus, Trash2, ListTree, ArrowUp, ArrowDown, Lock, Unlock } from "lucide-react";
+import { Plus, Trash2, ListTree, Lock, Unlock, GripVertical } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export const Route = createFileRoute("/enums")({
   head: () => ({
@@ -29,7 +46,7 @@ function EnumsPage() {
     const en: EnumObject = {
       id: uid(),
       name: `NewEnum${enums.length + 1}`,
-      values: [{ name: "VALUE_1" }],
+      values: [{ id: uid(), name: "VALUE_1" }],
     };
     actions.addEnum(en);
     setSelectedId(en.id);
@@ -87,37 +104,40 @@ function EnumEditor({ en, onDelete }: { en: EnumObject; onDelete: () => void }) 
   const { t: tr } = useLang();
   const numbers = computeEnumNumbers(en);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
   function patchValues(next: EnumValue[]) {
     actions.updateEnum(en.id, { values: next });
   }
-  function setName(i: number, name: string) {
-    const next = en.values.map((v, idx) => (idx === i ? { ...v, name } : v));
-    patchValues(next);
+  function setName(id: string, name: string) {
+    patchValues(en.values.map((v) => (v.id === id ? { ...v, name } : v)));
   }
-  function setLocked(i: number, locked: boolean) {
-    const next = en.values.map((v, idx) =>
-      idx === i ? { ...v, value: locked ? (v.value ?? numbers[i] ?? 0) : null } : v,
+  function setLocked(id: string, locked: boolean, fallback: number) {
+    patchValues(
+      en.values.map((v) => (v.id === id ? { ...v, value: locked ? (v.value ?? fallback) : null } : v)),
     );
-    patchValues(next);
   }
-  function setNumber(i: number, raw: string) {
+  function setNumber(id: string, raw: string) {
     const n = raw === "" || raw === "-" ? 0 : Number(raw);
     if (!Number.isFinite(n)) return;
-    const next = en.values.map((v, idx) => (idx === i ? { ...v, value: Math.trunc(n) } : v));
-    patchValues(next);
+    patchValues(en.values.map((v) => (v.id === id ? { ...v, value: Math.trunc(n) } : v)));
   }
-  function move(i: number, dir: -1 | 1) {
-    const j = i + dir;
-    if (j < 0 || j >= en.values.length) return;
-    const next = [...en.values];
-    [next[i], next[j]] = [next[j], next[i]];
-    patchValues(next);
-  }
-  function removeValue(i: number) {
-    patchValues(en.values.filter((_, idx) => idx !== i));
+  function removeValue(id: string) {
+    patchValues(en.values.filter((v) => v.id !== id));
   }
   function addValue() {
-    patchValues([...en.values, { name: `VALUE_${en.values.length + 1}` }]);
+    patchValues([...en.values, { id: uid(), name: `VALUE_${en.values.length + 1}` }]);
+  }
+  function onDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = en.values.findIndex((v) => v.id === active.id);
+    const newIndex = en.values.findIndex((v) => v.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    patchValues(arrayMove(en.values, oldIndex, newIndex));
   }
 
   return (
@@ -145,47 +165,22 @@ function EnumEditor({ en, onDelete }: { en: EnumObject; onDelete: () => void }) 
           {en.values.length === 0 && (
             <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">{tr.no_values}</p>
           )}
-          {en.values.map((v, i) => {
-            const locked = v.value != null;
-            return (
-              <div key={i} className="flex items-center gap-2 rounded-md border p-2">
-                <div className="flex flex-col">
-                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => move(i, -1)} disabled={i === 0}>
-                    <ArrowUp className="h-3 w-3" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => move(i, 1)} disabled={i === en.values.length - 1}>
-                    <ArrowDown className="h-3 w-3" />
-                  </Button>
-                </div>
-                <span className="w-10 text-center font-mono text-xs text-muted-foreground">{numbers[i]}</span>
-                <Input
-                  value={v.name}
-                  onChange={(e) => setName(i, e.target.value)}
-                  placeholder={tr.value_placeholder}
-                  className="font-mono"
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+            <SortableContext items={en.values.map((v) => v.id)} strategy={verticalListSortingStrategy}>
+              {en.values.map((v, i) => (
+                <SortableValueRow
+                  key={v.id}
+                  v={v}
+                  number={numbers[i]}
+                  tr={tr}
+                  onSetName={(name) => setName(v.id, name)}
+                  onSetLocked={(locked) => setLocked(v.id, locked, numbers[i] ?? 0)}
+                  onSetNumber={(raw) => setNumber(v.id, raw)}
+                  onRemove={() => removeValue(v.id)}
                 />
-                <Input
-                  type="number"
-                  value={locked ? String(v.value) : ""}
-                  onChange={(e) => setNumber(i, e.target.value)}
-                  disabled={!locked}
-                  placeholder="auto"
-                  className="w-24 font-mono"
-                />
-                <Button
-                  variant={locked ? "default" : "ghost"}
-                  size="icon"
-                  onClick={() => setLocked(i, !locked)}
-                  title={locked ? tr.unlock_number : tr.lock_number}
-                >
-                  {locked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => removeValue(i)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            );
-          })}
+              ))}
+            </SortableContext>
+          </DndContext>
         </div>
       </div>
 
@@ -193,6 +188,77 @@ function EnumEditor({ en, onDelete }: { en: EnumObject; onDelete: () => void }) 
         <h3 className="text-sm font-semibold text-muted-foreground">{tr.csharp_preview}</h3>
         <pre className="mt-2 overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">{enumToCSharp(en)}</pre>
       </div>
+    </div>
+  );
+}
+
+function SortableValueRow({
+  v,
+  number,
+  tr,
+  onSetName,
+  onSetLocked,
+  onSetNumber,
+  onRemove,
+}: {
+  v: EnumValue;
+  number: number;
+  tr: ReturnType<typeof useLang>["t"];
+  onSetName: (name: string) => void;
+  onSetLocked: (locked: boolean) => void;
+  onSetNumber: (raw: string) => void;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: v.id });
+  const locked = v.value != null;
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : "auto",
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 rounded-md border bg-card p-2 ${isDragging ? "shadow-lg" : ""}`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="cursor-grab touch-none rounded p-1 text-muted-foreground hover:bg-accent active:cursor-grabbing"
+        aria-label={tr.drag_to_reorder}
+        title={tr.drag_to_reorder}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span className="w-10 text-center font-mono text-xs text-muted-foreground">{number}</span>
+      <Input
+        value={v.name}
+        onChange={(e) => onSetName(e.target.value)}
+        placeholder={tr.value_placeholder}
+        className="font-mono"
+      />
+      <Input
+        type="number"
+        value={locked ? String(v.value) : ""}
+        onChange={(e) => onSetNumber(e.target.value)}
+        disabled={!locked}
+        placeholder="auto"
+        className="w-24 font-mono"
+      />
+      <Button
+        variant={locked ? "default" : "ghost"}
+        size="icon"
+        onClick={() => onSetLocked(!locked)}
+        title={locked ? tr.unlock_number : tr.lock_number}
+      >
+        {locked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+      </Button>
+      <Button variant="ghost" size="icon" onClick={onRemove}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 }
