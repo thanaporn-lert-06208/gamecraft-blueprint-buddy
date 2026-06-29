@@ -169,18 +169,16 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
         </div>
         <div className="w-64 space-y-2">
           <Label>{tr.inherits_from}</Label>
-          <Select
+          <Combobox
             value={cls.parentId ?? "__none"}
             onValueChange={(v) => actions.updateClass(cls.id, { parentId: v === "__none" ? null : v })}
-          >
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none">{tr.none}</SelectItem>
-              {parentOptions.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            searchPlaceholder={tr.search_placeholder}
+            emptyText={tr.no_results}
+            options={[
+              { value: "__none", label: tr.none },
+              ...parentOptions.map((p) => ({ value: p.id, label: p.name, group: tr.group_class })),
+            ]}
+          />
         </div>
         <Button variant="destructive" onClick={onDelete}>
           <Trash2 className="h-4 w-4" /> {tr.delete}
