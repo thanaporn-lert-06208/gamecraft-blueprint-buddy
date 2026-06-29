@@ -218,22 +218,26 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
                 placeholder={tr.field_name_placeholder}
               />
               <div className="col-span-4">
-                <Select value={fieldTypeValue(f.type)} onValueChange={(v) => setFieldType(f.id, v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PRIMITIVE_TYPES.map((p) => (
-                      <SelectItem key={p} value={p}>{p}</SelectItem>
-                    ))}
-                    {classes.map((c) => (
-                      <SelectItem key={c.id} value={`class:${c.id}`}>
-                        {c.name} (class){c.id === cls.id ? ` ${tr.self_ref_suffix}` : ""}
-                      </SelectItem>
-                    ))}
-                    {enums.map((e) => (
-                      <SelectItem key={e.id} value={`enum:${e.id}`}>{e.name} (enum)</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  value={fieldTypeValue(f.type)}
+                  onValueChange={(v) => setFieldType(f.id, v)}
+                  searchPlaceholder={tr.search_placeholder}
+                  emptyText={tr.no_results}
+                  options={[
+                    ...PRIMITIVE_TYPES.map<ComboboxOption>((p) => ({
+                      value: p, label: p, group: tr.group_primitive,
+                    })),
+                    ...classes.map<ComboboxOption>((c) => ({
+                      value: `class:${c.id}`,
+                      label: `${c.name}${c.id === cls.id ? ` ${tr.self_ref_suffix}` : ""}`,
+                      keywords: c.name,
+                      group: tr.group_class,
+                    })),
+                    ...enums.map<ComboboxOption>((e) => ({
+                      value: `enum:${e.id}`, label: e.name, keywords: e.name, group: tr.group_enum,
+                    })),
+                  ]}
+                />
               </div>
               <label className="col-span-3 flex items-center gap-2 text-sm">
                 <Switch checked={f.isList} onCheckedChange={(v) => updateField(f.id, { isList: v })} />
