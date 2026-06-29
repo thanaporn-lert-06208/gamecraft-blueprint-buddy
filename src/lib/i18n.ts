@@ -82,6 +82,8 @@ const dict = {
     group_primitive: "Primitives",
     group_class: "Classes",
     group_enum: "Enums",
+    lock_number: "Lock numeric value",
+    unlock_number: "Auto-increment",
   },
   th: {
     appName: "GameFlow Forge",
@@ -145,6 +147,8 @@ const dict = {
     group_primitive: "ชนิดพื้นฐาน",
     group_class: "คลาส",
     group_enum: "Enum",
+    lock_number: "ล็อคค่าตัวเลข",
+    unlock_number: "เพิ่มอัตโนมัติ",
   },
 };
 
