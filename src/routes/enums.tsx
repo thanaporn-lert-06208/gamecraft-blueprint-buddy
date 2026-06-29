@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { actions, useGameFlow } from "@/lib/gameflow-store";
-import { enumToCSharp, uid, type EnumObject } from "@/lib/gameflow-types";
-import { Plus, Trash2, ListTree } from "lucide-react";
+import { computeEnumNumbers, enumToCSharp, uid, type EnumObject, type EnumValue } from "@/lib/gameflow-types";
+import { Plus, Trash2, ListTree, ArrowUp, ArrowDown, Lock, Unlock } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/enums")({
@@ -29,7 +29,7 @@ function EnumsPage() {
     const en: EnumObject = {
       id: uid(),
       name: `NewEnum${enums.length + 1}`,
-      values: ["VALUE_1"],
+      values: [{ name: "VALUE_1" }],
     };
     actions.addEnum(en);
     setSelectedId(en.id);
@@ -85,17 +85,39 @@ function EnumsPage() {
 
 function EnumEditor({ en, onDelete }: { en: EnumObject; onDelete: () => void }) {
   const { t: tr } = useLang();
+  const numbers = computeEnumNumbers(en);
 
-  function setValue(i: number, v: string) {
-    const next = [...en.values];
-    next[i] = v;
+  function patchValues(next: EnumValue[]) {
     actions.updateEnum(en.id, { values: next });
   }
+  function setName(i: number, name: string) {
+    const next = en.values.map((v, idx) => (idx === i ? { ...v, name } : v));
+    patchValues(next);
+  }
+  function setLocked(i: number, locked: boolean) {
+    const next = en.values.map((v, idx) =>
+      idx === i ? { ...v, value: locked ? (v.value ?? numbers[i] ?? 0) : null } : v,
+    );
+    patchValues(next);
+  }
+  function setNumber(i: number, raw: string) {
+    const n = raw === "" || raw === "-" ? 0 : Number(raw);
+    if (!Number.isFinite(n)) return;
+    const next = en.values.map((v, idx) => (idx === i ? { ...v, value: Math.trunc(n) } : v));
+    patchValues(next);
+  }
+  function move(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= en.values.length) return;
+    const next = [...en.values];
+    [next[i], next[j]] = [next[j], next[i]];
+    patchValues(next);
+  }
   function removeValue(i: number) {
-    actions.updateEnum(en.id, { values: en.values.filter((_, idx) => idx !== i) });
+    patchValues(en.values.filter((_, idx) => idx !== i));
   }
   function addValue() {
-    actions.updateEnum(en.id, { values: [...en.values, `VALUE_${en.values.length + 1}`] });
+    patchValues([...en.values, { name: `VALUE_${en.values.length + 1}` }]);
   }
 
   return (
@@ -123,20 +145,47 @@ function EnumEditor({ en, onDelete }: { en: EnumObject; onDelete: () => void }) 
           {en.values.length === 0 && (
             <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">{tr.no_values}</p>
           )}
-          {en.values.map((v, i) => (
-            <div key={i} className="flex items-center gap-2 rounded-md border p-2">
-              <span className="w-8 text-center font-mono text-xs text-muted-foreground">{i}</span>
-              <Input
-                value={v}
-                onChange={(e) => setValue(i, e.target.value)}
-                placeholder={tr.value_placeholder}
-                className="font-mono"
-              />
-              <Button variant="ghost" size="icon" onClick={() => removeValue(i)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+          {en.values.map((v, i) => {
+            const locked = v.value != null;
+            return (
+              <div key={i} className="flex items-center gap-2 rounded-md border p-2">
+                <div className="flex flex-col">
+                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => move(i, -1)} disabled={i === 0}>
+                    <ArrowUp className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => move(i, 1)} disabled={i === en.values.length - 1}>
+                    <ArrowDown className="h-3 w-3" />
+                  </Button>
+                </div>
+                <span className="w-10 text-center font-mono text-xs text-muted-foreground">{numbers[i]}</span>
+                <Input
+                  value={v.name}
+                  onChange={(e) => setName(i, e.target.value)}
+                  placeholder={tr.value_placeholder}
+                  className="font-mono"
+                />
+                <Input
+                  type="number"
+                  value={locked ? String(v.value) : ""}
+                  onChange={(e) => setNumber(i, e.target.value)}
+                  disabled={!locked}
+                  placeholder="auto"
+                  className="w-24 font-mono"
+                />
+                <Button
+                  variant={locked ? "default" : "ghost"}
+                  size="icon"
+                  onClick={() => setLocked(i, !locked)}
+                  title={locked ? tr.unlock_number : tr.lock_number}
+                >
+                  {locked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => removeValue(i)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
