@@ -20,10 +20,30 @@ export interface ClassObject {
   fields: ClassField[];
 }
 
+export interface EnumValue {
+  name: string;
+  /** When set, locks the numeric value (C# `Name = value`). When null/undefined, value auto-increments. */
+  value?: number | null;
+}
+
 export interface EnumObject {
   id: string;
   name: string;
-  values: string[];
+  values: EnumValue[];
+}
+
+/** Compute resolved numeric values for an enum, mirroring C# auto-increment rules. */
+export function computeEnumNumbers(en: EnumObject): number[] {
+  const out: number[] = [];
+  let next = 0;
+  for (const v of en.values) {
+    if (v.value != null && Number.isFinite(v.value)) {
+      next = Math.trunc(v.value);
+    }
+    out.push(next);
+    next += 1;
+  }
+  return out;
 }
 
 export interface Card {
@@ -92,7 +112,7 @@ export function defaultValueFor(
   }
   if (ft.kind === "enum") {
     const en = enums.find((e) => e.id === ft.enumId);
-    return en?.values[0] ?? "";
+    return en?.values[0]?.name ?? "";
   }
   // class: default null to safely support self/recursive references
   return null;
@@ -134,5 +154,9 @@ export function classToCSharp(
 }
 
 export function enumToCSharp(en: EnumObject): string {
-  return `public enum ${en.name}\n{\n${en.values.map((v) => `    ${v},`).join("\n")}\n}`;
+  const lines = en.values.map((v) => {
+    const suffix = v.value != null && Number.isFinite(v.value) ? ` = ${Math.trunc(v.value)}` : "";
+    return `    ${v.name}${suffix},`;
+  });
+  return `public enum ${en.name}\n{\n${lines.join("\n")}\n}`;
 }
