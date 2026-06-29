@@ -84,6 +84,7 @@ const dict = {
     group_enum: "Enums",
     lock_number: "Lock numeric value",
     unlock_number: "Auto-increment",
+    drag_to_reorder: "Drag to reorder",
   },
   th: {
     appName: "GameFlow Forge",
@@ -149,6 +150,7 @@ const dict = {
     group_enum: "Enum",
     lock_number: "ล็อคค่าตัวเลข",
     unlock_number: "เพิ่มอัตโนมัติ",
+    drag_to_reorder: "ลากเพื่อเรียงลำดับ",
   },
 };
 
