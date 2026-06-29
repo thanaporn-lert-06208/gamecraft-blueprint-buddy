@@ -140,6 +140,11 @@ const dict = {
     clear_nested: "ล้าง",
     null_value: "ว่าง (null)",
     self_ref_suffix: "(ตัวเอง)",
+    search_placeholder: "ค้นหา...",
+    no_results: "ไม่พบผลลัพธ์",
+    group_primitive: "ชนิดพื้นฐาน",
+    group_class: "คลาส",
+    group_enum: "Enum",
   },
 };
 
