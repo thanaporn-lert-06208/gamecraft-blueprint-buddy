@@ -4,9 +4,7 @@ import { AppNav } from "@/components/AppNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
 import { Switch } from "@/components/ui/switch";
 import { actions, useGameFlow } from "@/lib/gameflow-store";
 import {
@@ -171,18 +169,16 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
         </div>
         <div className="w-64 space-y-2">
           <Label>{tr.inherits_from}</Label>
-          <Select
+          <Combobox
             value={cls.parentId ?? "__none"}
             onValueChange={(v) => actions.updateClass(cls.id, { parentId: v === "__none" ? null : v })}
-          >
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none">{tr.none}</SelectItem>
-              {parentOptions.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            searchPlaceholder={tr.search_placeholder}
+            emptyText={tr.no_results}
+            options={[
+              { value: "__none", label: tr.none },
+              ...parentOptions.map((p) => ({ value: p.id, label: p.name, group: tr.group_class })),
+            ]}
+          />
         </div>
         <Button variant="destructive" onClick={onDelete}>
           <Trash2 className="h-4 w-4" /> {tr.delete}
@@ -222,22 +218,26 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
                 placeholder={tr.field_name_placeholder}
               />
               <div className="col-span-4">
-                <Select value={fieldTypeValue(f.type)} onValueChange={(v) => setFieldType(f.id, v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PRIMITIVE_TYPES.map((p) => (
-                      <SelectItem key={p} value={p}>{p}</SelectItem>
-                    ))}
-                    {classes.map((c) => (
-                      <SelectItem key={c.id} value={`class:${c.id}`}>
-                        {c.name} (class){c.id === cls.id ? ` ${tr.self_ref_suffix}` : ""}
-                      </SelectItem>
-                    ))}
-                    {enums.map((e) => (
-                      <SelectItem key={e.id} value={`enum:${e.id}`}>{e.name} (enum)</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  value={fieldTypeValue(f.type)}
+                  onValueChange={(v) => setFieldType(f.id, v)}
+                  searchPlaceholder={tr.search_placeholder}
+                  emptyText={tr.no_results}
+                  options={[
+                    ...PRIMITIVE_TYPES.map<ComboboxOption>((p) => ({
+                      value: p, label: p, group: tr.group_primitive,
+                    })),
+                    ...classes.map<ComboboxOption>((c) => ({
+                      value: `class:${c.id}`,
+                      label: `${c.name}${c.id === cls.id ? ` ${tr.self_ref_suffix}` : ""}`,
+                      keywords: c.name,
+                      group: tr.group_class,
+                    })),
+                    ...enums.map<ComboboxOption>((e) => ({
+                      value: `enum:${e.id}`, label: e.name, keywords: e.name, group: tr.group_enum,
+                    })),
+                  ]}
+                />
               </div>
               <label className="col-span-3 flex items-center gap-2 text-sm">
                 <Switch checked={f.isList} onCheckedChange={(v) => updateField(f.id, { isList: v })} />
