@@ -21,7 +21,7 @@ import {
   type EnumObject,
   type FieldType,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Download, FileJson, FileText, Package, Layers } from "lucide-react";
+import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cards")({
@@ -335,6 +335,19 @@ function FieldEditor({
                   }}
                 />
               </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                title={tr.copy_element}
+                onClick={() => {
+                  const next = [...arr];
+                  const clone = JSON.parse(JSON.stringify(item));
+                  next.splice(idx + 1, 0, clone);
+                  onChange(next);
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
               <Button
                 size="icon"
                 variant="ghost"
