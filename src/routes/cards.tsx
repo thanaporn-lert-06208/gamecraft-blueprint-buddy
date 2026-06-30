@@ -338,6 +338,19 @@ function FieldEditor({
               <Button
                 size="icon"
                 variant="ghost"
+                title={tr.copy_element}
+                onClick={() => {
+                  const next = [...arr];
+                  const clone = JSON.parse(JSON.stringify(item));
+                  next.splice(idx + 1, 0, clone);
+                  onChange(next);
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
                 onClick={() => onChange(arr.filter((_, i) => i !== idx))}
               >
                 <Trash2 className="h-4 w-4" />
