@@ -166,6 +166,7 @@ function CardsPage() {
             <CardEditor
               key={selected.id}
               card={selected}
+              fileBase={fileBase(selected)}
               onDelete={() => { actions.deleteCard(selected.id); setSelectedId(null); }}
             />
           ) : (
