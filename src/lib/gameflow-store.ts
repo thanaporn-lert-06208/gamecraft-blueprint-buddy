@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
-import type { Card, ClassObject, EnumObject, GameFlowState } from "./gameflow-types";
+import { DEFAULT_EXPORT_SETTINGS, type Card, type ClassObject, type EnumObject, type ExportSettings, type GameFlowState } from "./gameflow-types";
 
 const STORAGE_KEY = "gameflow_state_v1";
 
-let state: GameFlowState = { classes: [], enums: [], cards: [] };
+let state: GameFlowState = { classes: [], enums: [], cards: [], settings: DEFAULT_EXPORT_SETTINGS };
 const listeners = new Set<() => void>();
 
 function load() {
