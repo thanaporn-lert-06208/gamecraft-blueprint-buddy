@@ -24,6 +24,7 @@ function load() {
         classes: parsed.classes ?? [],
         enums,
         cards: parsed.cards ?? [],
+        settings: { ...DEFAULT_EXPORT_SETTINGS, ...(parsed.settings ?? {}) },
       };
     }
   } catch {}
