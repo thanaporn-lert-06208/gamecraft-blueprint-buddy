@@ -100,4 +100,7 @@ export const actions = {
   deleteCard(id: string) {
     setState((s) => ({ ...s, cards: s.cards.filter((c) => c.id !== id) }));
   },
+  updateSettings(patch: Partial<ExportSettings>) {
+    setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
+  },
 };
