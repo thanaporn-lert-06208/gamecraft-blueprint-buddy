@@ -45,12 +45,19 @@ function download(name: string, content: string, mime: string) {
 }
 
 function CardsPage() {
-  const { classes, enums, cards } = useGameFlow();
+  const { classes, enums, cards, settings } = useGameFlow();
   const { t: tr } = useLang();
   const [selectedId, setSelectedId] = useState<string | null>(cards[0]?.id ?? null);
   const [pendingClassId, setPendingClassId] = useState<string>(classes[0]?.id ?? "");
 
   const selected = cards.find((c) => c.id === selectedId) ?? null;
+
+  function fileBase(card: Card): string {
+    if (!settings.includeLabelInFilename) return card.name;
+    const cls = classes.find((c) => c.id === card.classId);
+    const label = cls?.label?.trim();
+    return label ? `${label}${settings.separator}${card.name}` : card.name;
+  }
 
   function createCard() {
     if (!pendingClassId) return;
@@ -71,8 +78,7 @@ function CardsPage() {
     for (const card of cards) {
       const cls = classes.find((c) => c.id === card.classId);
       const folder = cls?.name ?? "Unknown";
-      const payload = { __class: cls?.name, ...card.data };
-      zip.file(`${folder}/${card.name}.json`, JSON.stringify(payload, null, 2));
+      zip.file(`${folder}/${fileBase(card)}.json`, JSON.stringify(card.data, null, 2));
     }
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
@@ -105,6 +111,26 @@ function CardsPage() {
               <p className="text-xs text-muted-foreground">{tr.define_class_first}</p>
             )}
           </div>
+
+          <div className="space-y-3 rounded-xl border bg-card p-4">
+            <Label className="text-xs uppercase text-muted-foreground">{tr.export_settings}</Label>
+            <label className="flex items-center justify-between gap-2 text-sm">
+              <span>{tr.include_label_in_filename}</span>
+              <Switch
+                checked={settings.includeLabelInFilename}
+                onCheckedChange={(v) => actions.updateSettings({ includeLabelInFilename: v })}
+              />
+            </label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">{tr.filename_separator}</Label>
+              <Input
+                value={settings.separator}
+                onChange={(e) => actions.updateSettings({ separator: e.target.value })}
+                className="font-mono"
+              />
+            </div>
+          </div>
+
 
           <div className="space-y-1">
             <div className="flex items-center justify-between px-1">
@@ -140,6 +166,7 @@ function CardsPage() {
             <CardEditor
               key={selected.id}
               card={selected}
+              fileBase={fileBase(selected)}
               onDelete={() => { actions.deleteCard(selected.id); setSelectedId(null); }}
             />
           ) : (
@@ -153,7 +180,7 @@ function CardsPage() {
   );
 }
 
-function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
+function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string; onDelete: () => void }) {
   const { classes, enums } = useGameFlow();
   const { t: tr } = useLang();
   const cls = classes.find((c) => c.id === card.classId);
@@ -169,7 +196,7 @@ function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
   }
 
   function exportJson() {
-    download(`${card.name}.json`, JSON.stringify({ __class: cls!.name, ...card.data }, null, 2), "application/json");
+    download(`${fileBase}.json`, JSON.stringify(card.data, null, 2), "application/json");
   }
   function exportTxt() {
     const lines = [`# ${cls!.name}: ${card.name}`, ""];
@@ -198,7 +225,7 @@ function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
       }
     }
     walk(card.data, 0);
-    download(`${card.name}.txt`, lines.join("\n"), "text/plain");
+    download(`${fileBase}.txt`, lines.join("\n"), "text/plain");
   }
 
   return (
@@ -230,7 +257,7 @@ function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
           <Button size="sm" variant="ghost" onClick={exportJson}><Download className="h-4 w-4" /></Button>
         </div>
         <pre className="overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
-{JSON.stringify({ __class: cls.name, ...card.data }, null, 2)}
+{JSON.stringify(card.data, null, 2)}
         </pre>
       </div>
     </div>

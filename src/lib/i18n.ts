@@ -85,6 +85,11 @@ const dict = {
     lock_number: "Lock numeric value",
     unlock_number: "Auto-increment",
     drag_to_reorder: "Drag to reorder",
+    class_label_field: "Label",
+    class_label_placeholder: "Optional label (e.g. Hero, Enemy)",
+    export_settings: "Export settings",
+    include_label_in_filename: "Include class label in filename",
+    filename_separator: "Filename separator",
   },
   th: {
     appName: "GameFlow Forge",
@@ -151,6 +156,11 @@ const dict = {
     lock_number: "ล็อคค่าตัวเลข",
     unlock_number: "เพิ่มอัตโนมัติ",
     drag_to_reorder: "ลากเพื่อเรียงลำดับ",
+    class_label_field: "Label",
+    class_label_placeholder: "ป้ายกำกับ (เช่น Hero, Enemy)",
+    export_settings: "ตั้งค่าการส่งออก",
+    include_label_in_filename: "ใส่ Label ของคลาสในชื่อไฟล์",
+    filename_separator: "ตัวคั่นชื่อไฟล์",
   },
 };
 

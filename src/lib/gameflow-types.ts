@@ -16,9 +16,20 @@ export interface ClassField {
 export interface ClassObject {
   id: string;
   name: string;
+  label?: string;
   parentId: string | null;
   fields: ClassField[];
 }
+
+export interface ExportSettings {
+  includeLabelInFilename: boolean;
+  separator: string;
+}
+
+export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
+  includeLabelInFilename: false,
+  separator: "_",
+};
 
 export interface EnumValue {
   id: string;
@@ -58,6 +69,7 @@ export interface GameFlowState {
   classes: ClassObject[];
   enums: EnumObject[];
   cards: Card[];
+  settings: ExportSettings;
 }
 
 export function uid(): string {

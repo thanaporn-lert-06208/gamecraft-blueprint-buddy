@@ -167,6 +167,14 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
             className="text-lg font-medium"
           />
         </div>
+        <div className="w-56 space-y-2">
+          <Label>{tr.class_label_field}</Label>
+          <Input
+            value={cls.label ?? ""}
+            onChange={(e) => actions.updateClass(cls.id, { label: e.target.value })}
+            placeholder={tr.class_label_placeholder}
+          />
+        </div>
         <div className="w-64 space-y-2">
           <Label>{tr.inherits_from}</Label>
           <Combobox
