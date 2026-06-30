@@ -257,7 +257,7 @@ function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string
           <Button size="sm" variant="ghost" onClick={exportJson}><Download className="h-4 w-4" /></Button>
         </div>
         <pre className="overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
-{JSON.stringify({ __class: cls.name, ...card.data }, null, 2)}
+{JSON.stringify(card.data, null, 2)}
         </pre>
       </div>
     </div>
