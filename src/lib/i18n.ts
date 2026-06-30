@@ -85,6 +85,11 @@ const dict = {
     lock_number: "Lock numeric value",
     unlock_number: "Auto-increment",
     drag_to_reorder: "Drag to reorder",
+    class_label_field: "Label",
+    class_label_placeholder: "Optional label (e.g. Hero, Enemy)",
+    export_settings: "Export settings",
+    include_label_in_filename: "Include class label in filename",
+    filename_separator: "Filename separator",
   },
   th: {
     appName: "GameFlow Forge",
