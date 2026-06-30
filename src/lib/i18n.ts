@@ -90,6 +90,7 @@ const dict = {
     export_settings: "Export settings",
     include_label_in_filename: "Include class label in filename",
     filename_separator: "Filename separator",
+    copy_element: "Copy",
   },
   th: {
     appName: "GameFlow Forge",
@@ -161,6 +162,7 @@ const dict = {
     export_settings: "ตั้งค่าการส่งออก",
     include_label_in_filename: "ใส่ Label ของคลาสในชื่อไฟล์",
     filename_separator: "ตัวคั่นชื่อไฟล์",
+    copy_element: "คัดลอก",
   },
 };
 
