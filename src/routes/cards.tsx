@@ -180,7 +180,7 @@ function CardsPage() {
   );
 }
 
-function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
+function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string; onDelete: () => void }) {
   const { classes, enums } = useGameFlow();
   const { t: tr } = useLang();
   const cls = classes.find((c) => c.id === card.classId);
@@ -196,7 +196,7 @@ function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
   }
 
   function exportJson() {
-    download(`${card.name}.json`, JSON.stringify({ __class: cls!.name, ...card.data }, null, 2), "application/json");
+    download(`${fileBase}.json`, JSON.stringify(card.data, null, 2), "application/json");
   }
   function exportTxt() {
     const lines = [`# ${cls!.name}: ${card.name}`, ""];
@@ -225,7 +225,7 @@ function CardEditor({ card, onDelete }: { card: Card; onDelete: () => void }) {
       }
     }
     walk(card.data, 0);
-    download(`${card.name}.txt`, lines.join("\n"), "text/plain");
+    download(`${fileBase}.txt`, lines.join("\n"), "text/plain");
   }
 
   return (
