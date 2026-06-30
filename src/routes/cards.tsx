@@ -112,6 +112,26 @@ function CardsPage() {
             )}
           </div>
 
+          <div className="space-y-3 rounded-xl border bg-card p-4">
+            <Label className="text-xs uppercase text-muted-foreground">{tr.export_settings}</Label>
+            <label className="flex items-center justify-between gap-2 text-sm">
+              <span>{tr.include_label_in_filename}</span>
+              <Switch
+                checked={settings.includeLabelInFilename}
+                onCheckedChange={(v) => actions.updateSettings({ includeLabelInFilename: v })}
+              />
+            </label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">{tr.filename_separator}</Label>
+              <Input
+                value={settings.separator}
+                onChange={(e) => actions.updateSettings({ separator: e.target.value })}
+                className="font-mono"
+              />
+            </div>
+          </div>
+
+
           <div className="space-y-1">
             <div className="flex items-center justify-between px-1">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.cards_header}</h2>
