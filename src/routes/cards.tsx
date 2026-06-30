@@ -45,12 +45,19 @@ function download(name: string, content: string, mime: string) {
 }
 
 function CardsPage() {
-  const { classes, enums, cards } = useGameFlow();
+  const { classes, enums, cards, settings } = useGameFlow();
   const { t: tr } = useLang();
   const [selectedId, setSelectedId] = useState<string | null>(cards[0]?.id ?? null);
   const [pendingClassId, setPendingClassId] = useState<string>(classes[0]?.id ?? "");
 
   const selected = cards.find((c) => c.id === selectedId) ?? null;
+
+  function fileBase(card: Card): string {
+    if (!settings.includeLabelInFilename) return card.name;
+    const cls = classes.find((c) => c.id === card.classId);
+    const label = cls?.label?.trim();
+    return label ? `${label}${settings.separator}${card.name}` : card.name;
+  }
 
   function createCard() {
     if (!pendingClassId) return;
@@ -71,8 +78,7 @@ function CardsPage() {
     for (const card of cards) {
       const cls = classes.find((c) => c.id === card.classId);
       const folder = cls?.name ?? "Unknown";
-      const payload = { __class: cls?.name, ...card.data };
-      zip.file(`${folder}/${card.name}.json`, JSON.stringify(payload, null, 2));
+      zip.file(`${folder}/${fileBase(card)}.json`, JSON.stringify(card.data, null, 2));
     }
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
