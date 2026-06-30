@@ -69,6 +69,7 @@ export interface GameFlowState {
   classes: ClassObject[];
   enums: EnumObject[];
   cards: Card[];
+  settings: ExportSettings;
 }
 
 export function uid(): string {
