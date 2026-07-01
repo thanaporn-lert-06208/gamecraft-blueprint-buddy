@@ -61,6 +61,14 @@ function CardsPage() {
     return label ? `${label}${settings.separator}${card.name}` : card.name;
   }
 
+  function normalizeExt(ext: string, fallback: string): string {
+    const trimmed = (ext ?? "").trim();
+    if (!trimmed) return fallback;
+    return trimmed.startsWith(".") ? trimmed : `.${trimmed}`;
+  }
+  const jsonExt = normalizeExt(settings.jsonExtension, ".json");
+  const txtExt = normalizeExt(settings.txtExtension, ".txt");
+
   function createCard() {
     if (!pendingClassId) return;
     const cls = classes.find((c) => c.id === pendingClassId);
