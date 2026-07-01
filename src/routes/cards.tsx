@@ -75,8 +75,12 @@ function CardsPage() {
     setSelectedId(card.id);
   }
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   async function exportAllZip() {
     const zip = new JSZip();
+    const manifest: GameFlowState = { classes, enums, cards, settings };
+    zip.file("_gameflow.json", JSON.stringify(manifest, null, 2));
     for (const card of cards) {
       const cls = classes.find((c) => c.id === card.classId);
       const folder = cls?.name ?? "Unknown";
@@ -90,6 +94,48 @@ function CardsPage() {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  async function importZip(file: File) {
+    try {
+      const zip = await JSZip.loadAsync(file);
+      const manifestFile = zip.file("_gameflow.json");
+      if (manifestFile) {
+        const text = await manifestFile.async("string");
+        const parsed = JSON.parse(text) as Partial<GameFlowState>;
+        if (!Array.isArray(parsed.classes) || !Array.isArray(parsed.cards)) throw new Error("bad manifest");
+        if (!window.confirm(tr.import_confirm)) return;
+        setState(() => ({
+          classes: parsed.classes ?? [],
+          enums: parsed.enums ?? [],
+          cards: parsed.cards ?? [],
+          settings: { ...DEFAULT_EXPORT_SETTINGS, ...(parsed.settings ?? {}) },
+        }));
+        setSelectedId(parsed.cards?.[0]?.id ?? null);
+        window.alert(tr.import_success);
+        return;
+      }
+      // Fallback: import loose JSON files as cards, matching folder names to existing classes.
+      if (!window.confirm(tr.import_confirm)) return;
+      const newCards: Card[] = [];
+      const entries = Object.values(zip.files).filter((f) => !f.dir && f.name.endsWith(".json"));
+      for (const entry of entries) {
+        const parts = entry.name.split("/");
+        if (parts.length < 2) continue;
+        const folder = parts[0];
+        const base = parts[parts.length - 1].replace(/\.json$/i, "");
+        const cls = classes.find((c) => c.name === folder);
+        if (!cls) continue;
+        const data = JSON.parse(await entry.async("string"));
+        newCards.push({ id: uid(), name: base, classId: cls.id, data });
+      }
+      setState((s) => ({ ...s, cards: [...s.cards, ...newCards] }));
+      window.alert(tr.import_success);
+    } catch (err) {
+      console.error(err);
+      window.alert(tr.import_failed);
+    }
+  }
+
 
   return (
     <div className="min-h-screen bg-background">
