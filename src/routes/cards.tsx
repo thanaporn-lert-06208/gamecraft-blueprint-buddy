@@ -208,18 +208,56 @@ function CardsPage() {
             )}
             {cards.map((card) => {
               const cls = classes.find((c) => c.id === card.classId);
+              const isSelected = selectedId === card.id;
               return (
-                <button
+                <div
                   key={card.id}
-                  onClick={() => setSelectedId(card.id)}
-                  className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition ${
-                    selectedId === card.id ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"
+                  className={`group flex w-full items-center gap-1 rounded-md px-2 py-1 text-sm transition ${
+                    isSelected ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"
                   }`}
                 >
-                  <Layers className="h-4 w-4" />
-                  <span className="flex-1 truncate">{card.name}</span>
-                  <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">{cls?.name ?? "?"}</span>
-                </button>
+                  <button
+                    onClick={() => setSelectedId(card.id)}
+                    className="flex flex-1 items-center gap-2 truncate text-left"
+                  >
+                    <Layers className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 truncate">{card.name}</span>
+                    <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{cls?.name ?? "?"}</span>
+                  </button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                    title={tr.copy_element}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const clone: Card = {
+                        id: uid(),
+                        name: `${card.name}_copy`,
+                        classId: card.classId,
+                        data: JSON.parse(JSON.stringify(card.data)),
+                      };
+                      actions.addCard(clone);
+                      setSelectedId(clone.id);
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 hover:text-destructive"
+                    title={tr.delete}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!window.confirm(`${tr.delete} "${card.name}"?`)) return;
+                      actions.deleteCard(card.id);
+                      if (isSelected) setSelectedId(null);
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               );
             })}
           </div>
