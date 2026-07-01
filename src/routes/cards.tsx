@@ -181,11 +181,27 @@ function CardsPage() {
 
 
           <div className="space-y-1">
-            <div className="flex items-center justify-between px-1">
+            <div className="flex items-center justify-between gap-2 px-1">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.cards_header}</h2>
-              <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
-                <Package className="h-4 w-4" /> ZIP
-              </Button>
+              <div className="flex items-center gap-1">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".zip,application/zip"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) importZip(f);
+                    e.target.value = "";
+                  }}
+                />
+                <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} title={tr.import_zip}>
+                  <Upload className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
+                  <Package className="h-4 w-4" /> ZIP
+                </Button>
+              </div>
             </div>
             {cards.length === 0 && (
               <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">{tr.no_cards}</p>
