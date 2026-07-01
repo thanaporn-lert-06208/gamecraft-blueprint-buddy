@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { setState } from "@/lib/gameflow-store";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { actions, useGameFlow } from "@/lib/gameflow-store";
+import { actions, setState, useGameFlow } from "@/lib/gameflow-store";
 import {
   defaultValueFor,
   DEFAULT_EXPORT_SETTINGS,
