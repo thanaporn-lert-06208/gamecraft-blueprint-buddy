@@ -61,6 +61,14 @@ function CardsPage() {
     return label ? `${label}${settings.separator}${card.name}` : card.name;
   }
 
+  function normalizeExt(ext: string, fallback: string): string {
+    const trimmed = (ext ?? "").trim();
+    if (!trimmed) return fallback;
+    return trimmed.startsWith(".") ? trimmed : `.${trimmed}`;
+  }
+  const jsonExt = normalizeExt(settings.jsonExtension, ".json");
+  const txtExt = normalizeExt(settings.txtExtension, ".txt");
+
   function createCard() {
     if (!pendingClassId) return;
     const cls = classes.find((c) => c.id === pendingClassId);
@@ -84,7 +92,7 @@ function CardsPage() {
     for (const card of cards) {
       const cls = classes.find((c) => c.id === card.classId);
       const folder = cls?.name ?? "Unknown";
-      zip.file(`${folder}/${fileBase(card)}.json`, JSON.stringify(card.data, null, 2));
+      zip.file(`${folder}/${fileBase(card)}${jsonExt}`, JSON.stringify(card.data, null, 2));
     }
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
@@ -174,6 +182,24 @@ function CardsPage() {
               <Input
                 value={settings.separator}
                 onChange={(e) => actions.updateSettings({ separator: e.target.value })}
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">{tr.json_extension}</Label>
+              <Input
+                value={settings.jsonExtension}
+                onChange={(e) => actions.updateSettings({ jsonExtension: e.target.value })}
+                placeholder=".json"
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">{tr.txt_extension}</Label>
+              <Input
+                value={settings.txtExtension}
+                onChange={(e) => actions.updateSettings({ txtExtension: e.target.value })}
+                placeholder=".txt"
                 className="font-mono"
               />
             </div>
@@ -269,6 +295,8 @@ function CardsPage() {
               key={selected.id}
               card={selected}
               fileBase={fileBase(selected)}
+              jsonExt={jsonExt}
+              txtExt={txtExt}
               onDelete={() => { actions.deleteCard(selected.id); setSelectedId(null); }}
             />
           ) : (
@@ -282,7 +310,7 @@ function CardsPage() {
   );
 }
 
-function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string; onDelete: () => void }) {
+function CardEditor({ card, fileBase, jsonExt, txtExt, onDelete }: { card: Card; fileBase: string; jsonExt: string; txtExt: string; onDelete: () => void }) {
   const { classes, enums } = useGameFlow();
   const { t: tr } = useLang();
   const cls = classes.find((c) => c.id === card.classId);
@@ -298,7 +326,7 @@ function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string
   }
 
   function exportJson() {
-    download(`${fileBase}.json`, JSON.stringify(card.data, null, 2), "application/json");
+    download(`${fileBase}${jsonExt}`, JSON.stringify(card.data, null, 2), "application/json");
   }
   function exportTxt() {
     const lines = [`# ${cls!.name}: ${card.name}`, ""];
@@ -327,7 +355,7 @@ function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string
       }
     }
     walk(card.data, 0);
-    download(`${fileBase}.txt`, lines.join("\n"), "text/plain");
+    download(`${fileBase}${txtExt}`, lines.join("\n"), "text/plain");
   }
 
   return (
@@ -340,8 +368,8 @@ function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string
         <div className="text-sm text-muted-foreground">
           {tr.class_label} <span className="font-mono text-foreground">{cls.name}</span>
         </div>
-        <Button variant="outline" onClick={exportTxt}><FileText className="h-4 w-4" /> .txt</Button>
-        <Button variant="outline" onClick={exportJson}><FileJson className="h-4 w-4" /> .json</Button>
+        <Button variant="outline" onClick={exportTxt}><FileText className="h-4 w-4" /> {txtExt}</Button>
+        <Button variant="outline" onClick={exportJson}><FileJson className="h-4 w-4" /> {jsonExt}</Button>
         <Button variant="destructive" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
       </div>
 
