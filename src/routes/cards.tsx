@@ -295,6 +295,8 @@ function CardsPage() {
               key={selected.id}
               card={selected}
               fileBase={fileBase(selected)}
+              jsonExt={jsonExt}
+              txtExt={txtExt}
               onDelete={() => { actions.deleteCard(selected.id); setSelectedId(null); }}
             />
           ) : (
@@ -308,7 +310,7 @@ function CardsPage() {
   );
 }
 
-function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string; onDelete: () => void }) {
+function CardEditor({ card, fileBase, jsonExt, txtExt, onDelete }: { card: Card; fileBase: string; jsonExt: string; txtExt: string; onDelete: () => void }) {
   const { classes, enums } = useGameFlow();
   const { t: tr } = useLang();
   const cls = classes.find((c) => c.id === card.classId);
@@ -324,7 +326,7 @@ function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string
   }
 
   function exportJson() {
-    download(`${fileBase}.json`, JSON.stringify(card.data, null, 2), "application/json");
+    download(`${fileBase}${jsonExt}`, JSON.stringify(card.data, null, 2), "application/json");
   }
   function exportTxt() {
     const lines = [`# ${cls!.name}: ${card.name}`, ""];
@@ -353,7 +355,7 @@ function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string
       }
     }
     walk(card.data, 0);
-    download(`${fileBase}.txt`, lines.join("\n"), "text/plain");
+    download(`${fileBase}${txtExt}`, lines.join("\n"), "text/plain");
   }
 
   return (
@@ -366,8 +368,8 @@ function CardEditor({ card, fileBase, onDelete }: { card: Card; fileBase: string
         <div className="text-sm text-muted-foreground">
           {tr.class_label} <span className="font-mono text-foreground">{cls.name}</span>
         </div>
-        <Button variant="outline" onClick={exportTxt}><FileText className="h-4 w-4" /> .txt</Button>
-        <Button variant="outline" onClick={exportJson}><FileJson className="h-4 w-4" /> .json</Button>
+        <Button variant="outline" onClick={exportTxt}><FileText className="h-4 w-4" /> {txtExt}</Button>
+        <Button variant="outline" onClick={exportJson}><FileJson className="h-4 w-4" /> {jsonExt}</Button>
         <Button variant="destructive" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
       </div>
 
