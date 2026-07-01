@@ -185,6 +185,24 @@ function CardsPage() {
                 className="font-mono"
               />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">{tr.json_extension}</Label>
+              <Input
+                value={settings.jsonExtension}
+                onChange={(e) => actions.updateSettings({ jsonExtension: e.target.value })}
+                placeholder=".json"
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">{tr.txt_extension}</Label>
+              <Input
+                value={settings.txtExtension}
+                onChange={(e) => actions.updateSettings({ txtExtension: e.target.value })}
+                placeholder=".txt"
+                className="font-mono"
+              />
+            </div>
           </div>
 
 
