@@ -1,17 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import JSZip from "jszip";
 import { AppNav } from "@/components/AppNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { setState } from "@/lib/gameflow-store";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { actions, useGameFlow } from "@/lib/gameflow-store";
 import {
   defaultValueFor,
+  DEFAULT_EXPORT_SETTINGS,
   getAllFields,
   makeEmptyObject,
   uid,
@@ -20,8 +22,9 @@ import {
   type ClassObject,
   type EnumObject,
   type FieldType,
+  type GameFlowState,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy } from "lucide-react";
+import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cards")({
