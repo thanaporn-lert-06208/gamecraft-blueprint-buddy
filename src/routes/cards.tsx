@@ -92,7 +92,7 @@ function CardsPage() {
     for (const card of cards) {
       const cls = classes.find((c) => c.id === card.classId);
       const folder = cls?.name ?? "Unknown";
-      zip.file(`${folder}/${fileBase(card)}.json`, JSON.stringify(card.data, null, 2));
+      zip.file(`${folder}/${fileBase(card)}${jsonExt}`, JSON.stringify(card.data, null, 2));
     }
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
