@@ -24,11 +24,15 @@ export interface ClassObject {
 export interface ExportSettings {
   includeLabelInFilename: boolean;
   separator: string;
+  jsonExtension: string;
+  txtExtension: string;
 }
 
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   includeLabelInFilename: false,
   separator: "_",
+  jsonExtension: ".json",
+  txtExtension: ".txt",
 };
 
 export interface EnumValue {
