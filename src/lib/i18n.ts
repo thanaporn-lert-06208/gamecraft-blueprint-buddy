@@ -91,6 +91,10 @@ const dict = {
     include_label_in_filename: "Include class label in filename",
     filename_separator: "Filename separator",
     copy_element: "Copy",
+    import_zip: "Import ZIP",
+    import_confirm: "Importing will replace all current classes, enums, and cards. Continue?",
+    import_success: "Import successful.",
+    import_failed: "Import failed: invalid file.",
   },
   th: {
     appName: "GameFlow Forge",
@@ -163,6 +167,10 @@ const dict = {
     include_label_in_filename: "ใส่ Label ของคลาสในชื่อไฟล์",
     filename_separator: "ตัวคั่นชื่อไฟล์",
     copy_element: "คัดลอก",
+    import_zip: "นำเข้า ZIP",
+    import_confirm: "การนำเข้าจะแทนที่คลาส Enum และการ์ดทั้งหมดในปัจจุบัน ต้องการดำเนินการต่อหรือไม่?",
+    import_success: "นำเข้าสำเร็จ",
+    import_failed: "นำเข้าล้มเหลว: ไฟล์ไม่ถูกต้อง",
   },
 };
 

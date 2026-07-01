@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import JSZip from "jszip";
 import { AppNav } from "@/components/AppNav";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { actions, useGameFlow } from "@/lib/gameflow-store";
+import { actions, setState, useGameFlow } from "@/lib/gameflow-store";
 import {
   defaultValueFor,
+  DEFAULT_EXPORT_SETTINGS,
   getAllFields,
   makeEmptyObject,
   uid,
@@ -20,8 +21,9 @@ import {
   type ClassObject,
   type EnumObject,
   type FieldType,
+  type GameFlowState,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy } from "lucide-react";
+import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cards")({
@@ -73,8 +75,12 @@ function CardsPage() {
     setSelectedId(card.id);
   }
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   async function exportAllZip() {
     const zip = new JSZip();
+    const manifest: GameFlowState = { classes, enums, cards, settings };
+    zip.file("_gameflow.json", JSON.stringify(manifest, null, 2));
     for (const card of cards) {
       const cls = classes.find((c) => c.id === card.classId);
       const folder = cls?.name ?? "Unknown";
@@ -88,6 +94,48 @@ function CardsPage() {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  async function importZip(file: File) {
+    try {
+      const zip = await JSZip.loadAsync(file);
+      const manifestFile = zip.file("_gameflow.json");
+      if (manifestFile) {
+        const text = await manifestFile.async("string");
+        const parsed = JSON.parse(text) as Partial<GameFlowState>;
+        if (!Array.isArray(parsed.classes) || !Array.isArray(parsed.cards)) throw new Error("bad manifest");
+        if (!window.confirm(tr.import_confirm)) return;
+        setState(() => ({
+          classes: parsed.classes ?? [],
+          enums: parsed.enums ?? [],
+          cards: parsed.cards ?? [],
+          settings: { ...DEFAULT_EXPORT_SETTINGS, ...(parsed.settings ?? {}) },
+        }));
+        setSelectedId(parsed.cards?.[0]?.id ?? null);
+        window.alert(tr.import_success);
+        return;
+      }
+      // Fallback: import loose JSON files as cards, matching folder names to existing classes.
+      if (!window.confirm(tr.import_confirm)) return;
+      const newCards: Card[] = [];
+      const entries = Object.values(zip.files).filter((f) => !f.dir && f.name.endsWith(".json"));
+      for (const entry of entries) {
+        const parts = entry.name.split("/");
+        if (parts.length < 2) continue;
+        const folder = parts[0];
+        const base = parts[parts.length - 1].replace(/\.json$/i, "");
+        const cls = classes.find((c) => c.name === folder);
+        if (!cls) continue;
+        const data = JSON.parse(await entry.async("string"));
+        newCards.push({ id: uid(), name: base, classId: cls.id, data });
+      }
+      setState((s) => ({ ...s, cards: [...s.cards, ...newCards] }));
+      window.alert(tr.import_success);
+    } catch (err) {
+      console.error(err);
+      window.alert(tr.import_failed);
+    }
+  }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,11 +181,27 @@ function CardsPage() {
 
 
           <div className="space-y-1">
-            <div className="flex items-center justify-between px-1">
+            <div className="flex items-center justify-between gap-2 px-1">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.cards_header}</h2>
-              <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
-                <Package className="h-4 w-4" /> ZIP
-              </Button>
+              <div className="flex items-center gap-1">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".zip,application/zip"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) importZip(f);
+                    e.target.value = "";
+                  }}
+                />
+                <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} title={tr.import_zip}>
+                  <Upload className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
+                  <Package className="h-4 w-4" /> ZIP
+                </Button>
+              </div>
             </div>
             {cards.length === 0 && (
               <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">{tr.no_cards}</p>
