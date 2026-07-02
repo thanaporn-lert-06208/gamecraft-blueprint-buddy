@@ -26,7 +26,7 @@ import {
   type FieldType,
   type GameFlowState,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload } from "lucide-react";
+import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload, Settings } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cards")({
