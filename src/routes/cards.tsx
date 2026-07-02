@@ -9,6 +9,9 @@ import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
 import { actions, setState, useGameFlow } from "@/lib/gameflow-store";
 import {
   defaultValueFor,
@@ -23,7 +26,7 @@ import {
   type FieldType,
   type GameFlowState,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload } from "lucide-react";
+import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload, Settings } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cards")({
@@ -148,7 +151,59 @@ function CardsPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
-      <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[300px_1fr]">
+      <main className="mx-auto max-w-7xl space-y-4 px-6 py-8">
+        <div className="flex items-center justify-between gap-2 rounded-xl border bg-card px-4 py-2">
+          <h1 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.nav_cards}</h1>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <Settings className="h-4 w-4" /> {tr.export_settings}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{tr.export_settings}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <label className="flex items-center justify-between gap-2 text-sm">
+                  <span>{tr.include_label_in_filename}</span>
+                  <Switch
+                    checked={settings.includeLabelInFilename}
+                    onCheckedChange={(v) => actions.updateSettings({ includeLabelInFilename: v })}
+                  />
+                </label>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{tr.filename_separator}</Label>
+                  <Input
+                    value={settings.separator}
+                    onChange={(e) => actions.updateSettings({ separator: e.target.value })}
+                    className="font-mono"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{tr.json_extension}</Label>
+                  <Input
+                    value={settings.jsonExtension}
+                    onChange={(e) => actions.updateSettings({ jsonExtension: e.target.value })}
+                    placeholder=".json"
+                    className="font-mono"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{tr.txt_extension}</Label>
+                  <Input
+                    value={settings.txtExtension}
+                    onChange={(e) => actions.updateSettings({ txtExtension: e.target.value })}
+                    placeholder=".txt"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
         <aside className="space-y-4">
           <div className="space-y-2 rounded-xl border bg-card p-4">
             <Label className="text-xs uppercase text-muted-foreground">{tr.new_card_from_class}</Label>
@@ -168,45 +223,8 @@ function CardsPage() {
             )}
           </div>
 
-          <div className="space-y-3 rounded-xl border bg-card p-4">
-            <Label className="text-xs uppercase text-muted-foreground">{tr.export_settings}</Label>
-            <label className="flex items-center justify-between gap-2 text-sm">
-              <span>{tr.include_label_in_filename}</span>
-              <Switch
-                checked={settings.includeLabelInFilename}
-                onCheckedChange={(v) => actions.updateSettings({ includeLabelInFilename: v })}
-              />
-            </label>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">{tr.filename_separator}</Label>
-              <Input
-                value={settings.separator}
-                onChange={(e) => actions.updateSettings({ separator: e.target.value })}
-                className="font-mono"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">{tr.json_extension}</Label>
-              <Input
-                value={settings.jsonExtension}
-                onChange={(e) => actions.updateSettings({ jsonExtension: e.target.value })}
-                placeholder=".json"
-                className="font-mono"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">{tr.txt_extension}</Label>
-              <Input
-                value={settings.txtExtension}
-                onChange={(e) => actions.updateSettings({ txtExtension: e.target.value })}
-                placeholder=".txt"
-                className="font-mono"
-              />
-            </div>
-          </div>
-
-
           <div className="space-y-1">
+
             <div className="flex items-center justify-between gap-2 px-1">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.cards_header}</h2>
               <div className="flex items-center gap-1">
@@ -305,6 +323,7 @@ function CardsPage() {
             </div>
           )}
         </section>
+        </div>
       </main>
     </div>
   );
