@@ -67,13 +67,50 @@ export interface Card {
   name: string;
   classId: string;
   data: Record<string, unknown>;
+  folderId?: string | null;
+}
+
+export interface Folder {
+  id: string;
+  name: string;
+  parentId: string | null;
 }
 
 export interface GameFlowState {
   classes: ClassObject[];
   enums: EnumObject[];
   cards: Card[];
+  folders: Folder[];
   settings: ExportSettings;
+}
+
+/** Return folder id path from root -> folder (inclusive). */
+export function getFolderPath(folders: Folder[], folderId: string | null | undefined): Folder[] {
+  const out: Folder[] = [];
+  let cur = folderId ? folders.find((f) => f.id === folderId) : undefined;
+  const guard = new Set<string>();
+  while (cur && !guard.has(cur.id)) {
+    guard.add(cur.id);
+    out.unshift(cur);
+    cur = cur.parentId ? folders.find((f) => f.id === cur!.parentId) : undefined;
+  }
+  return out;
+}
+
+/** All descendant folder ids of the given folder (not inclusive). */
+export function getFolderDescendantIds(folders: Folder[], folderId: string): Set<string> {
+  const out = new Set<string>();
+  const stack = [folderId];
+  while (stack.length) {
+    const id = stack.pop()!;
+    for (const f of folders) {
+      if (f.parentId === id && !out.has(f.id)) {
+        out.add(f.id);
+        stack.push(f.id);
+      }
+    }
+  }
+  return out;
 }
 
 export function uid(): string {

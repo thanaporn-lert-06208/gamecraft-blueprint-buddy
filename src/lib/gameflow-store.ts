@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
-import { DEFAULT_EXPORT_SETTINGS, type Card, type ClassObject, type EnumObject, type ExportSettings, type GameFlowState } from "./gameflow-types";
+import { DEFAULT_EXPORT_SETTINGS, getFolderDescendantIds, type Card, type ClassObject, type EnumObject, type ExportSettings, type Folder, type GameFlowState } from "./gameflow-types";
 
 const STORAGE_KEY = "gameflow_state_v1";
 
-let state: GameFlowState = { classes: [], enums: [], cards: [], settings: DEFAULT_EXPORT_SETTINGS };
+let state: GameFlowState = { classes: [], enums: [], cards: [], folders: [], settings: DEFAULT_EXPORT_SETTINGS };
 const listeners = new Set<() => void>();
 
 function load() {
@@ -23,7 +23,8 @@ function load() {
       state = {
         classes: parsed.classes ?? [],
         enums,
-        cards: parsed.cards ?? [],
+        cards: (parsed.cards ?? []).map((c) => ({ ...c, folderId: c.folderId ?? null })),
+        folders: parsed.folders ?? [],
         settings: { ...DEFAULT_EXPORT_SETTINGS, ...(parsed.settings ?? {}) },
       };
     }
@@ -44,7 +45,9 @@ function emit() {
 export function getState() { return state; }
 
 export function setState(updater: (s: GameFlowState) => GameFlowState) {
-  state = updater(state);
+  const next = updater(state);
+  // Ensure folders always exists after external restores.
+  state = { ...next, folders: next.folders ?? [] };
   emit();
 }
 
@@ -92,13 +95,42 @@ export const actions = {
     }));
   },
   addCard(card: Card) {
-    setState((s) => ({ ...s, cards: [...s.cards, card] }));
+    setState((s) => ({ ...s, cards: [...s.cards, { ...card, folderId: card.folderId ?? null }] }));
   },
   updateCard(id: string, patch: Partial<Card>) {
     setState((s) => ({ ...s, cards: s.cards.map((c) => c.id === id ? { ...c, ...patch } : c) }));
   },
   deleteCard(id: string) {
     setState((s) => ({ ...s, cards: s.cards.filter((c) => c.id !== id) }));
+  },
+  moveCard(id: string, folderId: string | null) {
+    setState((s) => ({ ...s, cards: s.cards.map((c) => c.id === id ? { ...c, folderId } : c) }));
+  },
+  addFolder(folder: Folder) {
+    setState((s) => ({ ...s, folders: [...s.folders, folder] }));
+  },
+  updateFolder(id: string, patch: Partial<Folder>) {
+    setState((s) => ({ ...s, folders: s.folders.map((f) => f.id === id ? { ...f, ...patch } : f) }));
+  },
+  moveFolder(id: string, parentId: string | null) {
+    setState((s) => {
+      if (id === parentId) return s;
+      // prevent cycles: can't move into own descendant
+      const descendants = getFolderDescendantIds(s.folders, id);
+      if (parentId && descendants.has(parentId)) return s;
+      return { ...s, folders: s.folders.map((f) => f.id === id ? { ...f, parentId } : f) };
+    });
+  },
+  deleteFolder(id: string) {
+    setState((s) => {
+      const descendants = getFolderDescendantIds(s.folders, id);
+      const doomed = new Set<string>([id, ...descendants]);
+      return {
+        ...s,
+        folders: s.folders.filter((f) => !doomed.has(f.id)),
+        cards: s.cards.map((c) => (c.folderId && doomed.has(c.folderId) ? { ...c, folderId: null } : c)),
+      };
+    });
   },
   updateSettings(patch: Partial<ExportSettings>) {
     setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
