@@ -157,7 +157,7 @@ function FolderNode({
   folderOptions: FolderOption[];
   depth: number;
   expanded: Record<string, boolean>;
-  setExpanded: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  setExpanded: (updater: (prev: Record<string, boolean>) => Record<string, boolean>) => void;
   renamingId: string | null;
   setRenamingId: (id: string | null) => void;
   activeFolderId: string | null;
