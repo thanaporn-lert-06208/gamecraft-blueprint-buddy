@@ -51,6 +51,228 @@ function download(name: string, content: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
+type FolderOption = { id: string; label: string; depth: number };
+
+function flattenFolderTree(folders: Folder[], parentId: string | null = null, depth = 0, prefix = ""): FolderOption[] {
+  const out: FolderOption[] = [];
+  for (const f of folders.filter((x) => x.parentId === parentId)) {
+    const label = prefix ? `${prefix}/${f.name}` : f.name;
+    out.push({ id: f.id, label, depth });
+    out.push(...flattenFolderTree(folders, f.id, depth + 1, label));
+  }
+  return out;
+}
+
+type TR = ReturnType<typeof import("@/lib/i18n").useLang>["t"];
+
+function CardRow({
+  card, classes, folderOptions, depth, isSelected, onSelect, onDeleteSelected, tr,
+}: {
+  card: Card;
+  classes: ClassObject[];
+  folderOptions: FolderOption[];
+  depth: number;
+  isSelected: boolean;
+  onSelect: () => void;
+  onDeleteSelected: () => void;
+  tr: TR;
+}) {
+  const cls = classes.find((c) => c.id === card.classId);
+  return (
+    <div
+      className={`group flex w-full items-center gap-1 rounded-md px-2 py-1 text-sm transition ${
+        isSelected ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"
+      }`}
+      style={{ paddingLeft: `${8 + depth * 14}px` }}
+    >
+      <button onClick={onSelect} className="flex flex-1 items-center gap-2 truncate text-left">
+        <Layers className="h-4 w-4 shrink-0" />
+        <span className="flex-1 truncate">{card.name}</span>
+        <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{cls?.name ?? "?"}</span>
+      </button>
+      <div className="opacity-0 group-hover:opacity-100">
+        <Select
+          value={card.folderId ?? "__root__"}
+          onValueChange={(v) => actions.moveCard(card.id, v === "__root__" ? null : v)}
+        >
+          <SelectTrigger className="h-7 w-7 border-0 bg-transparent p-0 [&>svg]:hidden" title={tr.move_to_folder}>
+            <FolderInput className="h-3.5 w-3.5" />
+          </SelectTrigger>
+          <SelectContent>
+            {folderOptions.map((o) => (
+              <SelectItem key={o.id} value={o.id}>
+                <span style={{ paddingLeft: `${o.depth * 10}px` }}>{o.label}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="h-7 w-7 opacity-0 group-hover:opacity-100"
+        title={tr.copy_element}
+        onClick={(e) => {
+          e.stopPropagation();
+          const clone: Card = {
+            id: uid(),
+            name: `${card.name}_copy`,
+            classId: card.classId,
+            data: JSON.parse(JSON.stringify(card.data)),
+            folderId: card.folderId ?? null,
+          };
+          actions.addCard(clone);
+        }}
+      >
+        <Copy className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="h-7 w-7 opacity-0 group-hover:opacity-100 hover:text-destructive"
+        title={tr.delete}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!window.confirm(`${tr.delete} "${card.name}"?`)) return;
+          actions.deleteCard(card.id);
+          if (isSelected) onDeleteSelected();
+        }}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
+}
+
+function FolderNode({
+  folder, allFolders, allCards, classes, folderOptions, depth,
+  expanded, setExpanded, renamingId, setRenamingId,
+  activeFolderId, setActiveFolderId, selectedId, setSelectedId,
+  onCreateSubfolder, tr,
+}: {
+  folder: Folder;
+  allFolders: Folder[];
+  allCards: Card[];
+  classes: ClassObject[];
+  folderOptions: FolderOption[];
+  depth: number;
+  expanded: Record<string, boolean>;
+  setExpanded: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  renamingId: string | null;
+  setRenamingId: (id: string | null) => void;
+  activeFolderId: string | null;
+  setActiveFolderId: (id: string | null) => void;
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+  onCreateSubfolder: (parentId: string | null) => void;
+  tr: TR;
+}) {
+  const isOpen = expanded[folder.id] ?? true;
+  const isActive = activeFolderId === folder.id;
+  const children = allFolders.filter((f) => f.parentId === folder.id);
+  const folderCards = allCards.filter((c) => c.folderId === folder.id);
+  const isRenaming = renamingId === folder.id;
+
+  return (
+    <div>
+      <div
+        className={`group flex w-full items-center gap-1 rounded-md px-2 py-1 text-sm transition ${
+          isActive ? "bg-primary/10 text-foreground" : "text-foreground/80 hover:bg-accent/50"
+        }`}
+        style={{ paddingLeft: `${4 + depth * 14}px` }}
+      >
+        <button
+          className="flex h-5 w-5 items-center justify-center text-muted-foreground"
+          onClick={() => setExpanded((e) => ({ ...e, [folder.id]: !isOpen }))}
+        >
+          {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        </button>
+        {isOpen ? <FolderOpen className="h-4 w-4 shrink-0" /> : <FolderIcon className="h-4 w-4 shrink-0" />}
+        {isRenaming ? (
+          <Input
+            autoFocus
+            defaultValue={folder.name}
+            className="h-6 flex-1 px-1 py-0 text-sm"
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v) actions.updateFolder(folder.id, { name: v });
+              setRenamingId(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+              if (e.key === "Escape") setRenamingId(null);
+            }}
+          />
+        ) : (
+          <button
+            className="flex-1 truncate text-left"
+            onClick={() => setActiveFolderId(isActive ? null : folder.id)}
+            onDoubleClick={() => setRenamingId(folder.id)}
+            title={tr.move_to_folder}
+          >
+            {folder.name}
+          </button>
+        )}
+        <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100" title={tr.new_subfolder}
+          onClick={() => onCreateSubfolder(folder.id)}>
+          <FolderPlus className="h-3.5 w-3.5" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100" title={tr.rename_folder}
+          onClick={() => setRenamingId(folder.id)}>
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:text-destructive"
+          title={tr.delete_folder}
+          onClick={() => {
+            if (!window.confirm(tr.delete_folder_confirm)) return;
+            actions.deleteFolder(folder.id);
+            if (activeFolderId === folder.id) setActiveFolderId(null);
+          }}>
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+      {isOpen && (
+        <div className="space-y-1">
+          {folderCards.map((c) => (
+            <CardRow
+              key={c.id}
+              card={c}
+              classes={classes}
+              folderOptions={folderOptions}
+              depth={depth + 1}
+              isSelected={selectedId === c.id}
+              onSelect={() => setSelectedId(c.id)}
+              onDeleteSelected={() => setSelectedId(null)}
+              tr={tr}
+            />
+          ))}
+          {children.map((child) => (
+            <FolderNode
+              key={child.id}
+              folder={child}
+              allFolders={allFolders}
+              allCards={allCards}
+              classes={classes}
+              folderOptions={folderOptions}
+              depth={depth + 1}
+              expanded={expanded}
+              setExpanded={setExpanded}
+              renamingId={renamingId}
+              setRenamingId={setRenamingId}
+              activeFolderId={activeFolderId}
+              setActiveFolderId={setActiveFolderId}
+              selectedId={selectedId}
+              setSelectedId={setSelectedId}
+              onCreateSubfolder={onCreateSubfolder}
+              tr={tr}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CardsPage() {
   const { classes, enums, cards, folders, settings } = useGameFlow();
   const { t: tr } = useLang();
