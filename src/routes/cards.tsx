@@ -323,6 +323,7 @@ function CardsPage() {
             </div>
           )}
         </section>
+        </div>
       </main>
     </div>
   );
