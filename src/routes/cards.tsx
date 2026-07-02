@@ -17,6 +17,7 @@ import {
   defaultValueFor,
   DEFAULT_EXPORT_SETTINGS,
   getAllFields,
+  getFolderPath,
   makeEmptyObject,
   uid,
   type Card,
@@ -24,9 +25,10 @@ import {
   type ClassObject,
   type EnumObject,
   type FieldType,
+  type Folder,
   type GameFlowState,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload, Settings } from "lucide-react";
+import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload, Settings, Folder as FolderIcon, FolderPlus, ChevronRight, ChevronDown, FolderOpen, Pencil, FolderInput } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/cards")({
@@ -50,18 +52,34 @@ function download(name: string, content: string, mime: string) {
 }
 
 function CardsPage() {
-  const { classes, enums, cards, settings } = useGameFlow();
+  const { classes, enums, cards, folders, settings } = useGameFlow();
   const { t: tr } = useLang();
   const [selectedId, setSelectedId] = useState<string | null>(cards[0]?.id ?? null);
   const [pendingClassId, setPendingClassId] = useState<string>(classes[0]?.id ?? "");
+  const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [renamingId, setRenamingId] = useState<string | null>(null);
 
   const selected = cards.find((c) => c.id === selectedId) ?? null;
+
+  function folderPath(folderId: string | null | undefined): string {
+    const path = getFolderPath(folders, folderId ?? null);
+    return path.map((f) => f.name).join("/");
+  }
 
   function fileBase(card: Card): string {
     if (!settings.includeLabelInFilename) return card.name;
     const cls = classes.find((c) => c.id === card.classId);
     const label = cls?.label?.trim();
     return label ? `${label}${settings.separator}${card.name}` : card.name;
+  }
+
+  function zipPathFor(card: Card): string {
+    const p = folderPath(card.folderId);
+    if (p) return `${p}/${fileBase(card)}${jsonExt}`;
+    const cls = classes.find((c) => c.id === card.classId);
+    const folder = cls?.name ?? "Unfiled";
+    return `${folder}/${fileBase(card)}${jsonExt}`;
   }
 
   function normalizeExt(ext: string, fallback: string): string {
@@ -81,21 +99,27 @@ function CardsPage() {
       name: `${cls.name}_${cards.length + 1}`,
       classId: cls.id,
       data: makeEmptyObject(classes, cls.id, enums),
+      folderId: activeFolderId,
     };
     actions.addCard(card);
     setSelectedId(card.id);
+  }
+
+  function createFolder(parentId: string | null) {
+    const folder: Folder = { id: uid(), name: tr.new_folder, parentId };
+    actions.addFolder(folder);
+    if (parentId) setExpanded((e) => ({ ...e, [parentId]: true }));
+    setRenamingId(folder.id);
   }
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function exportAllZip() {
     const zip = new JSZip();
-    const manifest: GameFlowState = { classes, enums, cards, settings };
+    const manifest: GameFlowState = { classes, enums, cards, folders, settings };
     zip.file("_gameflow.json", JSON.stringify(manifest, null, 2));
     for (const card of cards) {
-      const cls = classes.find((c) => c.id === card.classId);
-      const folder = cls?.name ?? "Unknown";
-      zip.file(`${folder}/${fileBase(card)}${jsonExt}`, JSON.stringify(card.data, null, 2));
+      zip.file(zipPathFor(card), JSON.stringify(card.data, null, 2));
     }
     const blob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(blob);
@@ -118,7 +142,8 @@ function CardsPage() {
         setState(() => ({
           classes: parsed.classes ?? [],
           enums: parsed.enums ?? [],
-          cards: parsed.cards ?? [],
+          cards: (parsed.cards ?? []).map((c) => ({ ...c, folderId: c.folderId ?? null })),
+          folders: parsed.folders ?? [],
           settings: { ...DEFAULT_EXPORT_SETTINGS, ...(parsed.settings ?? {}) },
         }));
         setSelectedId(parsed.cards?.[0]?.id ?? null);
@@ -137,7 +162,7 @@ function CardsPage() {
         const cls = classes.find((c) => c.name === folder);
         if (!cls) continue;
         const data = JSON.parse(await entry.async("string"));
-        newCards.push({ id: uid(), name: base, classId: cls.id, data });
+        newCards.push({ id: uid(), name: base, classId: cls.id, data, folderId: null });
       }
       setState((s) => ({ ...s, cards: [...s.cards, ...newCards] }));
       window.alert(tr.import_success);
@@ -146,6 +171,14 @@ function CardsPage() {
       window.alert(tr.import_failed);
     }
   }
+
+  const rootFolders = folders.filter((f) => !f.parentId);
+  const rootCards = cards.filter((c) => !c.folderId || !folders.some((f) => f.id === c.folderId));
+
+  const folderOptions = [
+    { id: "__root__", label: tr.unfiled, depth: 0 },
+    ...flattenFolderTree(folders),
+  ];
 
 
   return (
