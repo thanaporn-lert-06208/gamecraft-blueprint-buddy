@@ -149,6 +149,7 @@ const dict = {
     card_name: "ชื่อการ์ด",
     class_label: "คลาส:",
     json_preview: "พรีวิว JSON",
+    view_edit: "แก้ไข",
     no_fields_class: "คลาสนี้ไม่มีฟิลด์",
     add: "เพิ่ม",
     empty_list: "ลิสต์ว่าง",
