@@ -60,6 +60,7 @@ const dict = {
     card_name: "Card name",
     class_label: "Class:",
     json_preview: "JSON preview",
+    view_edit: "Edit",
     no_fields_class: "No fields on this class.",
     add: "Add",
     empty_list: "Empty list",
