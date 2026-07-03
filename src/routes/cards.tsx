@@ -662,8 +662,35 @@ function CardEditor({ card, fileBase, jsonExt, txtExt, onDelete }: { card: Card;
         />
       </div>
 
-      <div className="rounded-xl border bg-card p-5">
-        <div className="mb-2 flex items-center justify-between">
+      <Tabs defaultValue="edit" className="w-full">
+        <TabsList>
+          <TabsTrigger value="edit">{tr.view_edit}</TabsTrigger>
+          <TabsTrigger value="json">{tr.json_preview}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="edit">
+          <div className="rounded-xl border bg-card p-5">
+            <ObjectEditor
+              fields={fields}
+              value={card.data}
+              onChange={setData}
+            />
+          </div>
+        </TabsContent>
+        <TabsContent value="json">
+          <div className="rounded-xl border bg-card p-5">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-muted-foreground">{tr.json_preview}</h3>
+              <Button size="sm" variant="ghost" onClick={exportJson}><Download className="h-4 w-4" /></Button>
+            </div>
+            <pre className="overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
+{JSON.stringify(card.data, null, 2)}
+            </pre>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
           <h3 className="text-sm font-semibold text-muted-foreground">{tr.json_preview}</h3>
           <Button size="sm" variant="ghost" onClick={exportJson}><Download className="h-4 w-4" /></Button>
         </div>
