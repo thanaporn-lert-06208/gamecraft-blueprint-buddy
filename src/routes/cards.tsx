@@ -12,6 +12,9 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { useTrackScroll } from "@/lib/header-scroll";
 import { actions, setState, useGameFlow } from "@/lib/gameflow-store";
 import {
   defaultValueFor,
@@ -403,11 +406,14 @@ function CardsPage() {
   ];
 
 
+  const leftScrollRef = useTrackScroll("cards-left");
+  const rightScrollRef = useTrackScroll("cards-right");
+
   return (
     <div className="min-h-screen bg-background">
       <AppNav />
-      <main className="mx-auto max-w-7xl space-y-4 px-6 py-8">
-        <div className="flex items-center justify-between gap-2 rounded-xl border bg-card px-4 py-2">
+      <div className="flex h-[calc(100vh-65px)] flex-col">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b bg-card px-6 py-2">
           <h1 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.nav_cards}</h1>
           <Dialog>
             <DialogTrigger asChild>
@@ -458,124 +464,129 @@ function CardsPage() {
           </Dialog>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-        <aside className="space-y-4">
-          <div className="space-y-2 rounded-xl border bg-card p-4">
-            <Label className="text-xs uppercase text-muted-foreground">{tr.new_card_from_class}</Label>
-            <Select value={pendingClassId} onValueChange={setPendingClassId}>
-              <SelectTrigger><SelectValue placeholder={tr.pick_a_class} /></SelectTrigger>
-              <SelectContent>
-                {classes.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={createCard} disabled={!pendingClassId} className="w-full">
-              <Plus className="h-4 w-4" /> {tr.create_card}
-            </Button>
-            {classes.length === 0 && (
-              <p className="text-xs text-muted-foreground">{tr.define_class_first}</p>
-            )}
-          </div>
+        <ResizablePanelGroup orientation="horizontal" className="flex-1">
+          <ResizablePanel defaultSize={32} minSize={20}>
+            <div ref={leftScrollRef} className="h-full overflow-auto px-4 py-4">
+              <aside className="space-y-4">
+                <div className="space-y-2 rounded-xl border bg-card p-4">
+                  <Label className="text-xs uppercase text-muted-foreground">{tr.new_card_from_class}</Label>
+                  <Select value={pendingClassId} onValueChange={setPendingClassId}>
+                    <SelectTrigger><SelectValue placeholder={tr.pick_a_class} /></SelectTrigger>
+                    <SelectContent>
+                      {classes.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={createCard} disabled={!pendingClassId} className="w-full">
+                    <Plus className="h-4 w-4" /> {tr.create_card}
+                  </Button>
+                  {classes.length === 0 && (
+                    <p className="text-xs text-muted-foreground">{tr.define_class_first}</p>
+                  )}
+                </div>
 
-          <div className="space-y-1">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between gap-2 px-1">
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.cards_header}</h2>
+                    <div className="flex items-center gap-1">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".zip,application/zip"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) importZip(f);
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button size="sm" variant="ghost" onClick={() => createFolder(null)} title={tr.new_folder}>
+                        <FolderPlus className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} title={tr.import_zip}>
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
+                        <Package className="h-4 w-4" /> ZIP
+                      </Button>
+                    </div>
+                  </div>
 
-            <div className="flex items-center justify-between gap-2 px-1">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.cards_header}</h2>
-              <div className="flex items-center gap-1">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".zip,application/zip"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) importZip(f);
-                    e.target.value = "";
-                  }}
+                  {activeFolderId !== null && (
+                    <div className="flex items-center gap-2 rounded-md border border-dashed bg-muted/40 px-2 py-1 text-xs text-muted-foreground">
+                      <FolderOpen className="h-3.5 w-3.5" />
+                      <span className="flex-1 truncate">{folderPath(activeFolderId) || tr.unfiled}</span>
+                      <button className="text-xs underline" onClick={() => setActiveFolderId(null)}>{tr.root_folder}</button>
+                    </div>
+                  )}
+
+                  {cards.length === 0 && folders.length === 0 && (
+                    <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">{tr.no_cards}</p>
+                  )}
+
+                  {rootCards.map((card) => (
+                    <CardRow
+                      key={card.id}
+                      card={card}
+                      classes={classes}
+                      folderOptions={folderOptions}
+                      depth={0}
+                      isSelected={selectedId === card.id}
+                      onSelect={() => setSelectedId(card.id)}
+                      onDeleteSelected={() => setSelectedId(null)}
+                      tr={tr}
+                    />
+                  ))}
+
+                  {rootFolders.map((f) => (
+                    <FolderNode
+                      key={f.id}
+                      folder={f}
+                      allFolders={folders}
+                      allCards={cards}
+                      classes={classes}
+                      folderOptions={folderOptions}
+                      depth={0}
+                      expanded={expanded}
+                      setExpanded={setExpanded}
+                      renamingId={renamingId}
+                      setRenamingId={setRenamingId}
+                      activeFolderId={activeFolderId}
+                      setActiveFolderId={setActiveFolderId}
+                      selectedId={selectedId}
+                      setSelectedId={setSelectedId}
+                      onCreateSubfolder={createFolder}
+                      tr={tr}
+                    />
+                  ))}
+                </div>
+              </aside>
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
+
+          <ResizablePanel defaultSize={68} minSize={30}>
+            <div ref={rightScrollRef} className="h-full overflow-auto px-6 py-4">
+              {selected ? (
+                <CardEditor
+                  key={selected.id}
+                  card={selected}
+                  fileBase={fileBase(selected)}
+                  jsonExt={jsonExt}
+                  txtExt={txtExt}
+                  onDelete={() => { actions.deleteCard(selected.id); setSelectedId(null); }}
                 />
-                <Button size="sm" variant="ghost" onClick={() => createFolder(null)} title={tr.new_folder}>
-                  <FolderPlus className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} title={tr.import_zip}>
-                  <Upload className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
-                  <Package className="h-4 w-4" /> ZIP
-                </Button>
-              </div>
+              ) : (
+                <div className="grid h-64 place-items-center rounded-xl border border-dashed text-muted-foreground">
+                  {tr.select_or_create_card}
+                </div>
+              )}
             </div>
-
-            {activeFolderId !== null && (
-              <div className="flex items-center gap-2 rounded-md border border-dashed bg-muted/40 px-2 py-1 text-xs text-muted-foreground">
-                <FolderOpen className="h-3.5 w-3.5" />
-                <span className="flex-1 truncate">{folderPath(activeFolderId) || tr.unfiled}</span>
-                <button className="text-xs underline" onClick={() => setActiveFolderId(null)}>{tr.root_folder}</button>
-              </div>
-            )}
-
-            {cards.length === 0 && folders.length === 0 && (
-              <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">{tr.no_cards}</p>
-            )}
-
-            {/* Root-level cards (no folder assigned) */}
-            {rootCards.map((card) => (
-              <CardRow
-                key={card.id}
-                card={card}
-                classes={classes}
-                folderOptions={folderOptions}
-                depth={0}
-                isSelected={selectedId === card.id}
-                onSelect={() => setSelectedId(card.id)}
-                onDeleteSelected={() => setSelectedId(null)}
-                tr={tr}
-              />
-            ))}
-
-            {/* Folder tree */}
-            {rootFolders.map((f) => (
-              <FolderNode
-                key={f.id}
-                folder={f}
-                allFolders={folders}
-                allCards={cards}
-                classes={classes}
-                folderOptions={folderOptions}
-                depth={0}
-                expanded={expanded}
-                setExpanded={setExpanded}
-                renamingId={renamingId}
-                setRenamingId={setRenamingId}
-                activeFolderId={activeFolderId}
-                setActiveFolderId={setActiveFolderId}
-                selectedId={selectedId}
-                setSelectedId={setSelectedId}
-                onCreateSubfolder={createFolder}
-                tr={tr}
-              />
-            ))}
-          </div>
-        </aside>
-
-        <section>
-          {selected ? (
-            <CardEditor
-              key={selected.id}
-              card={selected}
-              fileBase={fileBase(selected)}
-              jsonExt={jsonExt}
-              txtExt={txtExt}
-              onDelete={() => { actions.deleteCard(selected.id); setSelectedId(null); }}
-            />
-          ) : (
-            <div className="grid h-64 place-items-center rounded-xl border border-dashed text-muted-foreground">
-              {tr.select_or_create_card}
-            </div>
-          )}
-        </section>
-        </div>
-      </main>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
     </div>
   );
 }
@@ -643,23 +654,32 @@ function CardEditor({ card, fileBase, jsonExt, txtExt, onDelete }: { card: Card;
         <Button variant="destructive" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
       </div>
 
-      <div className="rounded-xl border bg-card p-5">
-        <ObjectEditor
-          fields={fields}
-          value={card.data}
-          onChange={setData}
-        />
-      </div>
-
-      <div className="rounded-xl border bg-card p-5">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-muted-foreground">{tr.json_preview}</h3>
-          <Button size="sm" variant="ghost" onClick={exportJson}><Download className="h-4 w-4" /></Button>
-        </div>
-        <pre className="overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
+      <Tabs defaultValue="edit" className="w-full">
+        <TabsList>
+          <TabsTrigger value="edit">{tr.view_edit}</TabsTrigger>
+          <TabsTrigger value="json">{tr.json_preview}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="edit">
+          <div className="rounded-xl border bg-card p-5">
+            <ObjectEditor
+              fields={fields}
+              value={card.data}
+              onChange={setData}
+            />
+          </div>
+        </TabsContent>
+        <TabsContent value="json">
+          <div className="rounded-xl border bg-card p-5">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-muted-foreground">{tr.json_preview}</h3>
+              <Button size="sm" variant="ghost" onClick={exportJson}><Download className="h-4 w-4" /></Button>
+            </div>
+            <pre className="overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
 {JSON.stringify(card.data, null, 2)}
-        </pre>
-      </div>
+            </pre>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
