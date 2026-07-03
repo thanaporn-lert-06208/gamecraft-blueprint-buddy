@@ -654,14 +654,6 @@ function CardEditor({ card, fileBase, jsonExt, txtExt, onDelete }: { card: Card;
         <Button variant="destructive" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
       </div>
 
-      <div className="rounded-xl border bg-card p-5">
-        <ObjectEditor
-          fields={fields}
-          value={card.data}
-          onChange={setData}
-        />
-      </div>
-
       <Tabs defaultValue="edit" className="w-full">
         <TabsList>
           <TabsTrigger value="edit">{tr.view_edit}</TabsTrigger>
@@ -688,16 +680,6 @@ function CardEditor({ card, fileBase, jsonExt, txtExt, onDelete }: { card: Card;
           </div>
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-          <h3 className="text-sm font-semibold text-muted-foreground">{tr.json_preview}</h3>
-          <Button size="sm" variant="ghost" onClick={exportJson}><Download className="h-4 w-4" /></Button>
-        </div>
-        <pre className="overflow-x-auto rounded-md bg-muted p-4 font-mono text-xs leading-relaxed">
-{JSON.stringify(card.data, null, 2)}
-        </pre>
-      </div>
     </div>
   );
 }
