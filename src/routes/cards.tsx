@@ -464,7 +464,7 @@ function CardsPage() {
           </Dialog>
         </div>
 
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <ResizablePanelGroup orientation="horizontal" className="flex-1">
           <ResizablePanel defaultSize={32} minSize={20}>
             <div ref={leftScrollRef} className="h-full overflow-auto px-4 py-4">
               <aside className="space-y-4">
