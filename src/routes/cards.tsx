@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import JSZip from "jszip";
 import { AppNav } from "@/components/AppNav";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useTrackScroll } from "@/lib/header-scroll";
 import { actions, setState, useGameFlow } from "@/lib/gameflow-store";
@@ -279,9 +280,14 @@ function FolderNode({
 function CardsPage() {
   const { classes, enums, cards, folders, settings } = useGameFlow();
   const { t: tr } = useLang();
-  const [selectedId, setSelectedId] = useState<string | null>(cards[0]?.id ?? null);
-  const [pendingClassId, setPendingClassId] = useState<string>(classes[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pendingClassId, setPendingClassId] = useState<string>("");
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedId(cards[0]?.id ?? null);
+    setPendingClassId(classes[0]?.id ?? "");
+  }, [cards, classes]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [renamingId, setRenamingId] = useState<string | null>(null);
 
@@ -503,9 +509,14 @@ function CardsPage() {
                       <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} title={tr.import_zip}>
                         <Upload className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
-                        <Package className="h-4 w-4" /> ZIP
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="sm" variant="outline" onClick={exportAllZip} disabled={false}>
+                            <Package className="h-4 w-4" /> ZIP
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{tr.export_zip}</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
 
