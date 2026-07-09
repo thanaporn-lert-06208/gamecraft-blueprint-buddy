@@ -178,6 +178,7 @@ const dict = {
     class_label_field: "Label",
     class_label_placeholder: "ป้ายกำกับ (เช่น Hero, Enemy)",
     export_settings: "ตั้งค่าการส่งออก",
+    export_zip: "ส่งออก ZIP",
     include_label_in_filename: "ใส่ Label ของคลาสในชื่อไฟล์",
     filename_separator: "ตัวคั่นชื่อไฟล์",
     json_extension: "นามสกุลไฟล์ JSON",
