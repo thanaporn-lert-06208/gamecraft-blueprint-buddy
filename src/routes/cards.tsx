@@ -504,9 +504,14 @@ function CardsPage() {
                       <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} title={tr.import_zip}>
                         <Upload className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
-                        <Package className="h-4 w-4" /> ZIP
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
+                            <Package className="h-4 w-4" /> ZIP
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{tr.export_zip}</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
 
