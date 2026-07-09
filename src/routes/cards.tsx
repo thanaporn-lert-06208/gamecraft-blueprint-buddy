@@ -511,7 +511,7 @@ function CardsPage() {
                       </Button>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="sm" variant="outline" onClick={exportAllZip} disabled={cards.length === 0}>
+                          <Button size="sm" variant="outline" onClick={exportAllZip} disabled={false}>
                             <Package className="h-4 w-4" /> ZIP
                           </Button>
                         </TooltipTrigger>
