@@ -89,6 +89,7 @@ const dict = {
     class_label_field: "Label",
     class_label_placeholder: "Optional label (e.g. Hero, Enemy)",
     export_settings: "Export settings",
+    export_zip: "Export ZIP",
     include_label_in_filename: "Include class label in filename",
     filename_separator: "Filename separator",
     json_extension: "JSON file extension",
