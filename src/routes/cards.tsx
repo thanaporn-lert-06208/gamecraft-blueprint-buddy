@@ -280,9 +280,14 @@ function FolderNode({
 function CardsPage() {
   const { classes, enums, cards, folders, settings } = useGameFlow();
   const { t: tr } = useLang();
-  const [selectedId, setSelectedId] = useState<string | null>(cards[0]?.id ?? null);
-  const [pendingClassId, setPendingClassId] = useState<string>(classes[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pendingClassId, setPendingClassId] = useState<string>("");
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedId(cards[0]?.id ?? null);
+    setPendingClassId(classes[0]?.id ?? "");
+  }, [cards, classes]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [renamingId, setRenamingId] = useState<string | null>(null);
 
