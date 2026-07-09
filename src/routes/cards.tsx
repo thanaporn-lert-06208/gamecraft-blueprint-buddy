@@ -413,57 +413,6 @@ function CardsPage() {
     <div className="min-h-screen bg-background">
       <AppNav />
       <div className="flex h-[calc(100vh-65px)] flex-col">
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b bg-card px-6 py-2">
-          <h1 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{tr.nav_cards}</h1>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
-                <Settings className="h-4 w-4" /> {tr.export_settings}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{tr.export_settings}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3">
-                <label className="flex items-center justify-between gap-2 text-sm">
-                  <span>{tr.include_label_in_filename}</span>
-                  <Switch
-                    checked={settings.includeLabelInFilename}
-                    onCheckedChange={(v) => actions.updateSettings({ includeLabelInFilename: v })}
-                  />
-                </label>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{tr.filename_separator}</Label>
-                  <Input
-                    value={settings.separator}
-                    onChange={(e) => actions.updateSettings({ separator: e.target.value })}
-                    className="font-mono"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{tr.json_extension}</Label>
-                  <Input
-                    value={settings.jsonExtension}
-                    onChange={(e) => actions.updateSettings({ jsonExtension: e.target.value })}
-                    placeholder=".json"
-                    className="font-mono"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">{tr.txt_extension}</Label>
-                  <Input
-                    value={settings.txtExtension}
-                    onChange={(e) => actions.updateSettings({ txtExtension: e.target.value })}
-                    placeholder=".txt"
-                    className="font-mono"
-                  />
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
         <ResizablePanelGroup orientation="horizontal" className="flex-1">
           <ResizablePanel defaultSize={32} minSize={20}>
             <div ref={leftScrollRef} className="h-full overflow-auto px-4 py-4">
