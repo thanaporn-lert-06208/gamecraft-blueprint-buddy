@@ -58,7 +58,7 @@ export function subscribe(l: () => void) {
 }
 
 export function useGameFlow(): GameFlowState {
-  return useSyncExternalStore(subscribe, getState, getState);
+  return useSyncExternalStore(subscribe, getState, () => initialState);
 }
 
 export const actions = {
