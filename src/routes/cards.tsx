@@ -99,10 +99,8 @@ function CardRow({
           value={card.folderId ?? "__root__"}
           onValueChange={(v) => actions.moveCard(card.id, v === "__root__" ? null : v)}
         >
-          <SelectTrigger className="h-7 w-7 border-0 bg-transparent p-0 [&>svg]:hidden" title={tr.move_to_folder}>
-            <span className="flex h-full w-full items-center justify-center">
-              <FolderInput className="h-3.5 w-3.5" />
-            </span>
+          <SelectTrigger className="flex h-7 w-7 items-center justify-center border-0 bg-transparent p-0 [&>svg]:hidden" title={tr.move_to_folder}>
+            <FolderInput className="h-3.5 w-3.5" />
           </SelectTrigger>
           <SelectContent>
             {folderOptions.map((o) => (
