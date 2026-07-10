@@ -3,7 +3,8 @@ import { DEFAULT_EXPORT_SETTINGS, getFolderDescendantIds, type Card, type ClassO
 
 const STORAGE_KEY = "gameflow_state_v1";
 
-let state: GameFlowState = { classes: [], enums: [], cards: [], folders: [], settings: DEFAULT_EXPORT_SETTINGS };
+const initialState: GameFlowState = { classes: [], enums: [], cards: [], folders: [], settings: DEFAULT_EXPORT_SETTINGS };
+let state = initialState;
 const listeners = new Set<() => void>();
 
 function load() {
