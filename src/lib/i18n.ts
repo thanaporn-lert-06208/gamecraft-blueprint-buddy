@@ -3,7 +3,8 @@ import { useSyncExternalStore } from "react";
 export type Lang = "en" | "th";
 
 const STORAGE_KEY = "gameflow_lang";
-let lang: Lang = "en";
+const DEFAULT_LANG: Lang = "en";
+let lang: Lang = DEFAULT_LANG;
 const listeners = new Set<() => void>();
 
 if (typeof window !== "undefined") {
@@ -205,7 +206,7 @@ const dict = {
 export type Dict = (typeof dict)["en"];
 
 export function useLang(): { lang: Lang; t: Dict; toggle: () => void } {
-  const current = useSyncExternalStore(subscribe, getLang, getLang);
+  const current = useSyncExternalStore(subscribe, getLang, () => DEFAULT_LANG);
   return {
     lang: current,
     t: dict[current],
