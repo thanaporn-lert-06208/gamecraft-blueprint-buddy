@@ -206,7 +206,7 @@ const dict = {
 export type Dict = (typeof dict)["en"];
 
 export function useLang(): { lang: Lang; t: Dict; toggle: () => void } {
-  const current = useSyncExternalStore(subscribe, getLang, getLang);
+  const current = useSyncExternalStore(subscribe, getLang, () => DEFAULT_LANG);
   return {
     lang: current,
     t: dict[current],
