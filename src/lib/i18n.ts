@@ -3,7 +3,8 @@ import { useSyncExternalStore } from "react";
 export type Lang = "en" | "th";
 
 const STORAGE_KEY = "gameflow_lang";
-let lang: Lang = "en";
+const DEFAULT_LANG: Lang = "en";
+let lang: Lang = DEFAULT_LANG;
 const listeners = new Set<() => void>();
 
 if (typeof window !== "undefined") {
