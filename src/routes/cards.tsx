@@ -94,25 +94,26 @@ function CardRow({
         <span className="flex-1 truncate">{card.name}</span>
         <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{cls?.name ?? "?"}</span>
       </button>
-      <div className="opacity-0 group-hover:opacity-100">
-        <Select
-          value={card.folderId ?? "__root__"}
-          onValueChange={(v) => actions.moveCard(card.id, v === "__root__" ? null : v)}
+      <Select
+        value={card.folderId ?? "__root__"}
+        onValueChange={(v) => actions.moveCard(card.id, v === "__root__" ? null : v)}
+      >
+        <SelectTrigger
+          className="h-7 w-7 opacity-0 group-hover:opacity-100 border-0 bg-transparent p-0 hover:bg-accent hover:text-accent-foreground [&>svg]:hidden"
+          title={tr.move_to_folder}
         >
-          <SelectTrigger className="h-7 w-7 border-0 bg-transparent p-0 [&>svg]:hidden" title={tr.move_to_folder}>
-            <span className="flex h-full w-full items-center justify-center">
-              <FolderInput className="h-3.5 w-3.5" />
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            {folderOptions.map((o) => (
-              <SelectItem key={o.id} value={o.id}>
-                <span style={{ paddingLeft: `${o.depth * 10}px` }}>{o.label}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+          <span className="flex h-full w-full items-center justify-center">
+            <FolderInput className="h-3.5 w-3.5" />
+          </span>
+        </SelectTrigger>
+        <SelectContent>
+          {folderOptions.map((o) => (
+            <SelectItem key={o.id} value={o.id}>
+              <span style={{ paddingLeft: `${o.depth * 10}px` }}>{o.label}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <Button
         size="icon"
         variant="ghost"
