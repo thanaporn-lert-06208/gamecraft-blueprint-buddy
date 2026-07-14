@@ -12,6 +12,9 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -94,23 +97,35 @@ function CardRow({
         <span className="flex-1 truncate">{card.name}</span>
         <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{cls?.name ?? "?"}</span>
       </button>
-      <div className="opacity-0 group-hover:opacity-100">
-        <Select
-          value={card.folderId ?? "__root__"}
-          onValueChange={(v) => actions.moveCard(card.id, v === "__root__" ? null : v)}
-        >
-          <SelectTrigger className="flex h-7 w-7 items-center justify-center border-0 bg-transparent p-0 [&>svg]:hidden" title={tr.move_to_folder}>
-            <FolderInput className="h-3.5 w-3.5" />
-          </SelectTrigger>
-          <SelectContent>
-            {folderOptions.map((o) => (
-              <SelectItem key={o.id} value={o.id}>
-                <span style={{ paddingLeft: `${o.depth * 10}px` }}>{o.label}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <DropdownMenu>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                title={tr.move_to_folder}
+              >
+                <FolderInput className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="top">{tr.move_to_folder}</TooltipContent>
+        </Tooltip>
+        <DropdownMenuContent align="end" className="w-48">
+          {folderOptions.map((o) => (
+            <DropdownMenuItem
+              key={o.id}
+              className="text-sm"
+              style={{ paddingLeft: `${12 + o.depth * 10}px` }}
+              onClick={() => actions.moveCard(card.id, o.id === "__root__" ? null : o.id)}
+            >
+              {o.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
       <Button
         size="icon"
         variant="ghost"
