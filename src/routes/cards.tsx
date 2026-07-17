@@ -35,8 +35,9 @@ import {
   type Folder,
   type GameFlowState,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload, Settings, Folder as FolderIcon, FolderPlus, ChevronRight, ChevronDown, FolderOpen, Pencil, FolderInput } from "lucide-react";
+import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload, Settings, Folder as FolderIcon, FolderPlus, ChevronRight, ChevronDown, FolderOpen, Pencil, FolderInput, Languages, RefreshCw } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { fetchSheet, setLocState, translate, useLocalization } from "@/lib/localization-store";
 
 export const Route = createFileRoute("/cards")({
   head: () => ({
@@ -509,6 +510,7 @@ function CardsPage() {
                           </div>
                         </DialogContent>
                       </Dialog>
+                      <LocalizationDialog />
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -678,6 +680,9 @@ function CardEditor({ card, fileBase, jsonExt, txtExt, onDelete }: { card: Card;
         <Button variant="destructive" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
       </div>
 
+      <LocalizationBar />
+
+
       <Tabs defaultValue="edit" className="w-full">
         <TabsList>
           <TabsTrigger value="edit">{tr.view_edit}</TabsTrigger>
@@ -819,7 +824,7 @@ function FieldEditor({
           {t === "bool" ? (
             <Switch checked={!!value} onCheckedChange={(v) => onChange(v)} />
           ) : t === "string" ? (
-            <Input value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} />
+            <StringInput value={(value as string) ?? ""} onChange={onChange} />
           ) : (
             <Input
               type="number"
@@ -900,3 +905,146 @@ function FieldEditor({
     </div>
   );
 }
+
+function LocalizationDialog() {
+  const loc = useLocalization();
+  const [url, setUrl] = useState(loc.sheetUrl);
+  const [sheet, setSheet] = useState(loc.sheetName);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => { setUrl(loc.sheetUrl); setSheet(loc.sheetName); }, [loc.sheetUrl, loc.sheetName]);
+
+  async function load() {
+    setLoading(true); setError(null);
+    try {
+      const data = await fetchSheet(url, sheet);
+      setLocState((s) => ({
+        ...s,
+        sheetUrl: url,
+        sheetName: sheet,
+        data,
+        currentLang: s.currentLang && data.languages.includes(s.currentLang) ? s.currentLang : (data.languages[0] ?? ""),
+      }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const keyCount = Object.keys(loc.data.rows).length;
+
+  return (
+    <Dialog>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="ghost" title="Localization">
+              <Languages className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Localization</TooltipContent>
+      </Tooltip>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Localization</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Google Sheet URL</Label>
+            <Input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://docs.google.com/spreadsheets/d/..."
+            />
+            <p className="text-xs text-muted-foreground">Sheet must be shared as viewable by anyone with the link.</p>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Sheet name (tab)</Label>
+            <Input
+              value={sheet}
+              onChange={(e) => setSheet(e.target.value)}
+              placeholder="(default: first sheet)"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={load} disabled={loading || !url.trim()}>
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> {loading ? "Loading..." : "Load / Refresh"}
+            </Button>
+            {loc.data.fetchedAt && (
+              <span className="text-xs text-muted-foreground">
+                {keyCount} keys · {loc.data.languages.length} languages
+              </span>
+            )}
+          </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          {loc.data.languages.length > 0 && (
+            <div className="rounded-md border bg-muted/30 p-2 text-xs">
+              <div className="font-medium">Languages:</div>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {loc.data.languages.map((l) => (
+                  <span key={l} className="rounded bg-background px-2 py-0.5 font-mono">{l}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Format: row 1 lists languages (col A is key column), each subsequent row is a localization key.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function LocalizationBar() {
+  const loc = useLocalization();
+  if (loc.data.languages.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card px-4 py-3">
+      <div className="flex items-center gap-2 text-sm">
+        <Languages className="h-4 w-4 text-muted-foreground" />
+        <span className="text-muted-foreground">Language</span>
+        <Select
+          value={loc.currentLang || undefined}
+          onValueChange={(v) => setLocState((s) => ({ ...s, currentLang: v }))}
+        >
+          <SelectTrigger className="h-8 w-40"><SelectValue placeholder="—" /></SelectTrigger>
+          <SelectContent>
+            {loc.data.languages.map((l) => (
+              <SelectItem key={l} value={l}>{l}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <label className="ml-auto flex items-center gap-2 text-sm">
+        <Switch
+          checked={loc.showPreview}
+          onCheckedChange={(v) => setLocState((s) => ({ ...s, showPreview: v }))}
+        />
+        <span>Show translation preview</span>
+      </label>
+    </div>
+  );
+}
+
+function StringInput({ value, onChange }: { value: string; onChange: (v: unknown) => void }) {
+  const loc = useLocalization();
+  const preview = loc.showPreview && loc.currentLang ? translate(loc.data, value, loc.currentLang) : null;
+  const missing = loc.showPreview && loc.currentLang && value && preview === null;
+  return (
+    <div className="space-y-1">
+      <Input value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+      {loc.showPreview && loc.currentLang && value ? (
+        <p className={`px-1 text-xs ${missing ? "text-muted-foreground italic" : "text-primary"}`}>
+          <span className="font-mono text-muted-foreground">{loc.currentLang}:</span>{" "}
+          {preview !== null ? preview : "(no translation found)"}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+
