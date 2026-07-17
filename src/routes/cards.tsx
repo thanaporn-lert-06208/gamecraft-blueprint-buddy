@@ -300,9 +300,11 @@ function CardsPage() {
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
 
   useEffect(() => {
-    setSelectedId(cards[0]?.id ?? null);
-    setPendingClassId(classes[0]?.id ?? "");
-  }, [cards, classes]);
+    setSelectedId((prev) => (prev && cards.some((c) => c.id === prev) ? prev : cards[0]?.id ?? null));
+  }, [cards]);
+  useEffect(() => {
+    setPendingClassId((prev) => (prev && classes.some((c) => c.id === prev) ? prev : classes[0]?.id ?? ""));
+  }, [classes]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [renamingId, setRenamingId] = useState<string | null>(null);
 
