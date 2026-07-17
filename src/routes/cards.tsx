@@ -35,8 +35,9 @@ import {
   type Folder,
   type GameFlowState,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload, Settings, Folder as FolderIcon, FolderPlus, ChevronRight, ChevronDown, FolderOpen, Pencil, FolderInput } from "lucide-react";
+import { Plus, Trash2, Download, FileJson, FileText, Package, Layers, Copy, Upload, Settings, Folder as FolderIcon, FolderPlus, ChevronRight, ChevronDown, FolderOpen, Pencil, FolderInput, Languages, RefreshCw } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { fetchSheet, setLocState, translate, useLocalization } from "@/lib/localization-store";
 
 export const Route = createFileRoute("/cards")({
   head: () => ({
