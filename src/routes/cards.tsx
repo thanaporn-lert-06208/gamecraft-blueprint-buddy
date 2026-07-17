@@ -902,3 +902,97 @@ function FieldEditor({
     </div>
   );
 }
+
+function LocalizationDialog() {
+  const loc = useLocalization();
+  const [url, setUrl] = useState(loc.sheetUrl);
+  const [sheet, setSheet] = useState(loc.sheetName);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => { setUrl(loc.sheetUrl); setSheet(loc.sheetName); }, [loc.sheetUrl, loc.sheetName]);
+
+  async function load() {
+    setLoading(true); setError(null);
+    try {
+      const data = await fetchSheet(url, sheet);
+      setLocState((s) => ({
+        ...s,
+        sheetUrl: url,
+        sheetName: sheet,
+        data,
+        currentLang: s.currentLang && data.languages.includes(s.currentLang) ? s.currentLang : (data.languages[0] ?? ""),
+      }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const keyCount = Object.keys(loc.data.rows).length;
+
+  return (
+    <Dialog>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="ghost" title="Localization">
+              <Languages className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Localization</TooltipContent>
+      </Tooltip>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Localization</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Google Sheet URL</Label>
+            <Input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://docs.google.com/spreadsheets/d/..."
+            />
+            <p className="text-xs text-muted-foreground">Sheet must be shared as viewable by anyone with the link.</p>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Sheet name (tab)</Label>
+            <Input
+              value={sheet}
+              onChange={(e) => setSheet(e.target.value)}
+              placeholder="(default: first sheet)"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={load} disabled={loading || !url.trim()}>
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> {loading ? "Loading..." : "Load / Refresh"}
+            </Button>
+            {loc.data.fetchedAt && (
+              <span className="text-xs text-muted-foreground">
+                {keyCount} keys · {loc.data.languages.length} languages
+              </span>
+            )}
+          </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          {loc.data.languages.length > 0 && (
+            <div className="rounded-md border bg-muted/30 p-2 text-xs">
+              <div className="font-medium">Languages:</div>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {loc.data.languages.map((l) => (
+                  <span key={l} className="rounded bg-background px-2 py-0.5 font-mono">{l}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Format: row 1 lists languages (col A is key column), each subsequent row is a localization key.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
