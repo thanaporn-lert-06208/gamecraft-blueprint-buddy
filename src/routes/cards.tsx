@@ -510,6 +510,7 @@ function CardsPage() {
                           </div>
                         </DialogContent>
                       </Dialog>
+                      <LocalizationDialog />
                       <input
                         ref={fileInputRef}
                         type="file"
