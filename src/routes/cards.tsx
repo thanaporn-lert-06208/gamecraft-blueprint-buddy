@@ -999,3 +999,52 @@ function LocalizationDialog() {
   );
 }
 
+function LocalizationBar() {
+  const loc = useLocalization();
+  if (loc.data.languages.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card px-4 py-3">
+      <div className="flex items-center gap-2 text-sm">
+        <Languages className="h-4 w-4 text-muted-foreground" />
+        <span className="text-muted-foreground">Language</span>
+        <Select
+          value={loc.currentLang || undefined}
+          onValueChange={(v) => setLocState((s) => ({ ...s, currentLang: v }))}
+        >
+          <SelectTrigger className="h-8 w-40"><SelectValue placeholder="—" /></SelectTrigger>
+          <SelectContent>
+            {loc.data.languages.map((l) => (
+              <SelectItem key={l} value={l}>{l}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <label className="ml-auto flex items-center gap-2 text-sm">
+        <Switch
+          checked={loc.showPreview}
+          onCheckedChange={(v) => setLocState((s) => ({ ...s, showPreview: v }))}
+        />
+        <span>Show translation preview</span>
+      </label>
+    </div>
+  );
+}
+
+function StringInput({ value, onChange }: { value: string; onChange: (v: unknown) => void }) {
+  const loc = useLocalization();
+  const preview = loc.showPreview && loc.currentLang ? translate(loc.data, value, loc.currentLang) : null;
+  const missing = loc.showPreview && loc.currentLang && value && preview === null;
+  return (
+    <div className="space-y-1">
+      <Input value={value ?? ""} onChange={(e) => onChange(e.target.value)} />
+      {loc.showPreview && loc.currentLang && value ? (
+        <p className={`px-1 text-xs ${missing ? "text-muted-foreground italic" : "text-primary"}`}>
+          <span className="font-mono text-muted-foreground">{loc.currentLang}:</span>{" "}
+          {preview !== null ? preview : "(no translation found)"}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+
