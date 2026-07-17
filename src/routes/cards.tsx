@@ -680,6 +680,9 @@ function CardEditor({ card, fileBase, jsonExt, txtExt, onDelete }: { card: Card;
         <Button variant="destructive" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
       </div>
 
+      <LocalizationBar />
+
+
       <Tabs defaultValue="edit" className="w-full">
         <TabsList>
           <TabsTrigger value="edit">{tr.view_edit}</TabsTrigger>
