@@ -824,7 +824,7 @@ function FieldEditor({
           {t === "bool" ? (
             <Switch checked={!!value} onCheckedChange={(v) => onChange(v)} />
           ) : t === "string" ? (
-            <Input value={(value as string) ?? ""} onChange={(e) => onChange(e.target.value)} />
+            <StringInput value={(value as string) ?? ""} onChange={onChange} />
           ) : (
             <Input
               type="number"
