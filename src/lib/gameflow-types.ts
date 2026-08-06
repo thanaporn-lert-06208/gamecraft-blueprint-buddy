@@ -11,6 +11,25 @@ export interface ClassField {
   name: string;
   type: FieldType;
   isList: boolean;
+  /** Minimum number of list items (null/undefined = unlimited). */
+  listMin?: number | null;
+  /** Maximum number of list items (null/undefined = unlimited). */
+  listMax?: number | null;
+  /** Locks the list to exactly this many items (overrides min/max). */
+  listFixed?: number | null;
+}
+
+/** Resolved list size constraints for a field. */
+export function getListLimits(field: ClassField): { min: number; max: number | null; fixed: number | null } {
+  if (!field.isList) return { min: 0, max: null, fixed: null };
+  const fixed = field.listFixed != null && Number.isFinite(field.listFixed) && field.listFixed >= 0
+    ? Math.trunc(field.listFixed)
+    : null;
+  if (fixed != null) return { min: fixed, max: fixed, fixed };
+  const min = field.listMin != null && Number.isFinite(field.listMin) && field.listMin > 0 ? Math.trunc(field.listMin) : 0;
+  const rawMax = field.listMax != null && Number.isFinite(field.listMax) && field.listMax >= 0 ? Math.trunc(field.listMax) : null;
+  const max = rawMax != null ? Math.max(rawMax, min) : null;
+  return { min, max, fixed: null };
 }
 
 export interface ClassObject {
