@@ -173,7 +173,11 @@ export function defaultValueFor(
   classes: ClassObject[],
   enums: EnumObject[] = [],
 ): unknown {
-  if (field.isList) return [];
+  if (field.isList) {
+    const { min } = getListLimits(field);
+    const itemField: ClassField = { ...field, isList: false };
+    return Array.from({ length: min }, () => defaultValueFor(itemField, classes, enums));
+  }
   const ft = field.type;
   if (ft.kind === "primitive") {
     switch (ft.type) {
