@@ -755,15 +755,26 @@ function FieldEditor({
   if (field.isList) {
     const arr = Array.isArray(value) ? value : [];
     const itemField: ClassField = { ...field, isList: false };
+    const { min, max, fixed } = getListLimits(field);
+    const canAdd = max == null || arr.length < max;
+    const canRemove = arr.length > min;
+    const limitText = fixed != null
+      ? `= ${fixed}`
+      : `${min}..${max ?? "∞"}`;
     return (
       <div className="rounded-md border bg-muted/30 p-3">
         <div className="flex items-center justify-between">
           <div className="text-sm font-medium">
             {field.name} <span className="font-mono text-xs text-muted-foreground">[{typeLabel(field.type, classes, enums)}]</span>
+            <span className="ml-2 font-mono text-xs text-muted-foreground">
+              {arr.length} {tr.list_count_label} ({limitText})
+            </span>
           </div>
           <Button
             size="sm"
             variant="outline"
+            disabled={!canAdd}
+            title={canAdd ? undefined : (fixed != null ? tr.list_locked : tr.list_max_reached)}
             onClick={() => onChange([...arr, defaultValueFor(itemField, classes, enums)])}
           >
             <Plus className="h-4 w-4" /> {tr.add}
@@ -787,7 +798,8 @@ function FieldEditor({
               <Button
                 size="icon"
                 variant="ghost"
-                title={tr.copy_element}
+                title={canAdd ? tr.copy_element : (fixed != null ? tr.list_locked : tr.list_max_reached)}
+                disabled={!canAdd}
                 onClick={() => {
                   const next = [...arr];
                   const clone = JSON.parse(JSON.stringify(item));
@@ -800,6 +812,8 @@ function FieldEditor({
               <Button
                 size="icon"
                 variant="ghost"
+                disabled={!canRemove}
+                title={canRemove ? undefined : (fixed != null ? tr.list_locked : tr.list_min_reached)}
                 onClick={() => onChange(arr.filter((_, i) => i !== idx))}
               >
                 <Trash2 className="h-4 w-4" />
