@@ -218,7 +218,8 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
             </p>
           )}
           {cls.fields.map((f) => (
-            <div key={f.id} className="grid grid-cols-12 items-center gap-2 rounded-md border p-3">
+            <div key={f.id} className="rounded-md border p-3">
+              <div className="grid grid-cols-12 items-center gap-2">
               <Input
                 className="col-span-4"
                 value={f.name}
@@ -259,6 +260,55 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
+              </div>
+              {f.isList && (
+                <div className="mt-3 flex flex-wrap items-end gap-3 rounded-md border border-dashed bg-muted/30 p-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {tr.list_settings}
+                  </span>
+                  <div className="w-28 space-y-1">
+                    <Label className="text-xs">{tr.list_fixed}</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={f.listFixed ?? ""}
+                      placeholder={tr.list_unlimited}
+                      onChange={(e) =>
+                        updateField(f.id, { listFixed: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })
+                      }
+                    />
+                  </div>
+                  <div className="w-28 space-y-1">
+                    <Label className="text-xs">{tr.list_min}</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      disabled={f.listFixed != null}
+                      value={f.listMin ?? ""}
+                      placeholder="0"
+                      onChange={(e) =>
+                        updateField(f.id, { listMin: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })
+                      }
+                    />
+                  </div>
+                  <div className="w-28 space-y-1">
+                    <Label className="text-xs">{tr.list_max}</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      disabled={f.listFixed != null}
+                      value={f.listMax ?? ""}
+                      placeholder={tr.list_unlimited}
+                      onChange={(e) =>
+                        updateField(f.id, { listMax: e.target.value === "" ? null : Math.max(0, Number(e.target.value)) })
+                      }
+                    />
+                  </div>
+                  {f.listFixed != null && (
+                    <p className="text-xs text-muted-foreground">{tr.list_locked}</p>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
