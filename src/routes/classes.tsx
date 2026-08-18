@@ -328,8 +328,10 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
                   )}
                 </div>
               )}
-            </div>
+            </SortableFieldRow>
           ))}
+            </SortableContext>
+          </DndContext>
         </div>
       </div>
 
