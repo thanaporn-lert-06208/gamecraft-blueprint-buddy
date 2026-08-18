@@ -18,8 +18,25 @@ import {
   type FieldType,
   type PrimitiveType,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Boxes } from "lucide-react";
+import { Plus, Trash2, Boxes, GripVertical } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export const Route = createFileRoute("/classes")({
   head: () => ({
