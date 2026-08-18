@@ -234,8 +234,10 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
               {tr.no_fields}
             </p>
           )}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onFieldDragEnd}>
+            <SortableContext items={cls.fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
           {cls.fields.map((f) => (
-            <div key={f.id} className="rounded-md border p-3">
+            <SortableFieldRow key={f.id} id={f.id} dragLabel={tr.drag_to_reorder}>
               <div className="grid grid-cols-12 items-center gap-2">
               <Input
                 className="col-span-4"
