@@ -18,8 +18,25 @@ import {
   type FieldType,
   type PrimitiveType,
 } from "@/lib/gameflow-types";
-import { Plus, Trash2, Boxes } from "lucide-react";
+import { Plus, Trash2, Boxes, GripVertical } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export const Route = createFileRoute("/classes")({
   head: () => ({
@@ -102,7 +119,50 @@ function typeName(t: FieldType, classes: ClassObject[], enums: EnumObject[]): st
   return classes.find((c) => c.id === t.classId)?.name ?? "?";
 }
 
+function SortableFieldRow({ id, dragLabel, children }: { id: string; dragLabel: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : "auto",
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-start gap-2 rounded-md border bg-card p-3 ${isDragging ? "shadow-lg" : ""}`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="mt-2 cursor-grab touch-none rounded p-1 text-muted-foreground hover:bg-accent active:cursor-grabbing"
+        aria-label={dragLabel}
+        title={dragLabel}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="min-w-0 grow">{children}</div>
+    </div>
+  );
+}
+
 function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void }) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  function onFieldDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = cls.fields.findIndex((f) => f.id === active.id);
+    const newIndex = cls.fields.findIndex((f) => f.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    actions.updateClass(cls.id, { fields: arrayMove(cls.fields, oldIndex, newIndex) });
+  }
+
   const { classes, enums } = useGameFlow();
   const { t: tr } = useLang();
 
@@ -217,8 +277,10 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
               {tr.no_fields}
             </p>
           )}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onFieldDragEnd}>
+            <SortableContext items={cls.fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
           {cls.fields.map((f) => (
-            <div key={f.id} className="rounded-md border p-3">
+            <SortableFieldRow key={f.id} id={f.id} dragLabel={tr.drag_to_reorder}>
               <div className="grid grid-cols-12 items-center gap-2">
               <Input
                 className="col-span-4"
@@ -309,8 +371,10 @@ function ClassEditor({ cls, onDelete }: { cls: ClassObject; onDelete: () => void
                   )}
                 </div>
               )}
-            </div>
+            </SortableFieldRow>
           ))}
+            </SortableContext>
+          </DndContext>
         </div>
       </div>
 
